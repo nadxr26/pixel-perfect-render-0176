@@ -1,29 +1,14 @@
-# Welcome to your Lovable project
+# SPORTS CONNECT
 
-This project was built with [Lovable](https://lovable.dev).
+Real sports community: real accounts, player discovery with approximate distance, live online status and real-time 1-to-1 chat.
 
-## Build with Lovable
+## How it works
+- Hosted on Lovable — click **Publish** and share the public link. No local `index.html` needed.
+- Accounts, profiles, presence and messages are stored in Lovable Cloud (already configured — no keys to add).
+- Only the public browser key is used in the app; no secret keys are in frontend code.
+- Exact locations are private; other players only see an approximate distance (or "Distance hidden").
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+## Test with a friend
+1. Publish, open the link, sign up (confirm via the email link), log in.
+2. Send the link to a friend; they sign up and log in.
+3. Each of you sees the other under **Players**; tap **💬 Chat** and messages arrive instantly.
