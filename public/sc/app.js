@@ -206,4 +206,4 @@ function chrome(){const v=location.hash.slice(1)||'home',u=me(),un=S.notifs.filt
  $('#bot').innerHTML=NAV.map(n=>`<a class="${v===n[0]?'on':''}" onclick="go('${n[0]}')"><span>${n[2]}</span>${n[1]}</a>`).join('');
  $('#right').innerHTML=u?`<button class="btn sec sm" onclick="go('host')">Host</button><button class="ib" onclick="toggleNotifs()" aria-label="Notifications">🔔${un?`<em>${un}</em>`:''}</button><div onclick="go('profile')" style="cursor:pointer">${avatar(u)}</div>`:`<button class="btn sm" onclick="go('auth')">Login / Sign up</button>`}
 function render(){const v=location.hash.slice(1)||'home';$('#np').hidden=true;$('#app').innerHTML=(views[v]||views.home)();chrome()}
-window.addEventListener('hashchange',render);
+

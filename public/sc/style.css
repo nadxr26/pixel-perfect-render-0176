@@ -65,3 +65,19 @@ label{font-size:13px;font-weight:700;color:#4b5563;display:block;margin:12px 0 4
 .nearw .row.sb{padding:3px 0}.dist{white-space:nowrap}
 .nmt{display:none}@media(min-width:480px){.nmt{display:inline}}
 .sw{display:flex;align-items:center;gap:10px;margin:10px 0 4px;font-size:15px;cursor:pointer}.sw input{width:auto}
+/* ===== REAL CHAT ===== */
+.chat{display:grid;grid-template-columns:320px 1fr;gap:14px;margin-top:16px;height:calc(100vh - 250px);min-height:420px}
+.clist,.cthread{background:#fff;border:1px solid var(--line);border-radius:22px;overflow:auto}
+.cthread{display:flex;flex-direction:column;overflow:hidden}
+.ci{display:flex;gap:10px;padding:12px 14px;border-bottom:1px solid #f3f4f6;cursor:pointer;align-items:center}.ci.on,.ci:hover{background:#ecfdf5}
+.ci .t{flex:1;min-width:0}.ci .t div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ub{background:#ef4444;color:#fff;font:700 11px sans-serif;font-style:normal;border-radius:99px;min-width:20px;height:20px;padding:0 6px;display:inline-grid;place-items:center}
+.th{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}.cback{display:none}
+.msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.bb{max-width:75%;padding:9px 13px;border-radius:16px 16px 16px 4px;background:#fff;border:1px solid var(--line);font-size:15px;overflow-wrap:anywhere;align-self:flex-start}
+.bb.me{align-self:flex-end;background:var(--g);color:#fff;border-color:var(--g);border-radius:16px 16px 4px 16px}.bb small{display:block;font-size:11px;opacity:.7;margin-top:2px}
+.cin{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+.bot a{position:relative}.bot a .ub{position:absolute;top:2px;left:55%;min-width:16px;height:16px;font-size:10px;padding:0 4px}
+.links a .ub{min-width:18px;height:18px;font-size:10px}
+.sp-chk{display:flex;flex-wrap:wrap;gap:6px}.sp-chk label{margin:0;font-weight:600;display:flex;gap:6px;align-items:center;border:1px solid #e5e7eb;padding:6px 10px;border-radius:99px;cursor:pointer;background:#f9fafb}.sp-chk input{width:auto}
+@media(max-width:760px){.chat{grid-template-columns:1fr;height:calc(100vh - 220px)}.chat.has .clist{display:none}.chat:not(.has) .cthread{display:none}.cback{display:inline-block}}

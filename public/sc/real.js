@@ -313,5 +313,5 @@ chrome = function () {
 };
 const _render2 = render;
 render = function () { _render2(); if (view() === 'messages' && ACTIVE) paintThread(); };
-window.addEventListener('hashchange', () => { if (view() !== 'messages') ACTIVE = null; });
+window.addEventListener('hashchange', () => { if (view() !== 'messages') ACTIVE = null; render(); });
 render();
