@@ -14,13 +14,158 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      conversation_members: {
+        Row: {
+          conversation_id: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_members_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          message: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          city: string | null
+          created_at: string
+          id: string
+          last_seen: string
+          location_sharing: boolean
+          name: string
+          photo: string | null
+          skill_level: string
+          sports: string[]
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          id: string
+          last_seen?: string
+          location_sharing?: boolean
+          name?: string
+          photo?: string | null
+          skill_level?: string
+          sports?: string[]
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          last_seen?: string
+          location_sharing?: boolean
+          name?: string
+          photo?: string | null
+          skill_level?: string
+          sports?: string[]
+        }
+        Relationships: []
+      }
+      user_locations: {
+        Row: {
+          lat: number
+          lng: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          lat: number
+          lng: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          lat?: number
+          lng?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_or_create_dm: { Args: { _other: string }; Returns: string }
+      is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
+      list_players: {
+        Args: never
+        Returns: {
+          city: string
+          distance_hidden: boolean
+          distance_km: number
+          id: string
+          last_seen: string
+          name: string
+          photo: string
+          skill_level: string
+          sports: string[]
+        }[]
+      }
+      mark_read: { Args: { _conv: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
