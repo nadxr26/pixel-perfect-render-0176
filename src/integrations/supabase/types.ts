@@ -52,6 +52,115 @@ export type Database = {
         }
         Relationships: []
       }
+      match_participants: {
+        Row: {
+          joined_at: string
+          match_id: string
+          spots: number
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          match_id: string
+          spots?: number
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          match_id?: string
+          spots?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_participants_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_waitlist: {
+        Row: {
+          created_at: string
+          match_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          match_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          match_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_waitlist_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          created_at: string
+          description: string
+          end_hour: number
+          fee: number
+          ground_id: string
+          host_id: string
+          id: string
+          match_date: string
+          max_players: number
+          skill: string
+          sport: string
+          start_hour: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          end_hour: number
+          fee?: number
+          ground_id: string
+          host_id?: string
+          id?: string
+          match_date: string
+          max_players: number
+          skill?: string
+          sport: string
+          start_hour: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          end_hour?: number
+          fee?: number
+          ground_id?: string
+          host_id?: string
+          id?: string
+          match_date?: string
+          max_players?: number
+          skill?: string
+          sport?: string
+          start_hour?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           conversation_id: string
@@ -151,6 +260,10 @@ export type Database = {
     Functions: {
       get_or_create_dm: { Args: { _other: string }; Returns: string }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
+      join_match: { Args: { _m: string; _spots?: number }; Returns: undefined }
+      join_waitlist: { Args: { _m: string }; Returns: undefined }
+      leave_match: { Args: { _m: string }; Returns: undefined }
+      leave_waitlist: { Args: { _m: string }; Returns: undefined }
       list_players: {
         Args: never
         Returns: {
