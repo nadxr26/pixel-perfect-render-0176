@@ -42,7 +42,7 @@ function afterLoc(){const v=location.hash.slice(1)||'home';
 
 /* ---- map ---- */
 const ico=(c,h)=>L.divIcon({className:'',html:`<div class="mk ${c}">${h}</div>`,iconSize:c==='u'?[34,34]:[34,34],iconAnchor:[17,17],popupAnchor:[0,-16]});
-const gPopup=g=>`<div class="pop"><b>${esc(g.name)}</b>${LOC?`<div>📍 ${km1(g.km)} km away</div>`:''}<div>${SP[g.sport]||''} ${g.sport}</div><div>⭐ ${g.rating}</div><div>₹${g.price}/hour</div><div class="row"><button class="btn sm" onclick="openGround('${g.id}')">View Ground</button>${GetDirectionsButton(g)}</div></div>`;
+const gPopup=g=>`<div class="pop"><b>${esc(g.name)}</b>${LOC?`<div>📍 ${km1(g.km)} km away</div>`:''}<div>${(g.sports||[g.sport]).map(x=>(SP[x]||'')+' '+x).join(', ')}</div><div class="row">${typeof venueActions==='function'?venueActions(g,true):''}${GetDirectionsButton(g)}</div></div>`;
 const pPopup=p=>`<div class="pop"><b>${esc(p.name)}</b><div>${SP[p.sport]||''} ${p.sport} · ${p.skill}</div><div>📍 ${LOC?`~${km1(p.km)} km away · `:''}Near ${p.loc}</div><div class="row"><button class="btn sm" onclick="viewProfile('${p.id}')">View Profile</button></div></div>`;
 function MapView(id,o,h=380){MS[id]=o;return `<div class="mapbox"><div class="scmap" id="${id}" style="height:${h}px"></div></div>`}
 function mountMaps(){MAPS=MAPS.filter(m=>document.body.contains(m.getContainer())||(m.remove(),false));
@@ -59,17 +59,15 @@ function mountMaps(){MAPS=MAPS.filter(m=>document.body.contains(m.getContainer()
 
 /* ---- ground details ---- */
 function openGround(id){GSEL=id;try{sessionStorage.setItem('sc_g',id)}catch(e){}closeModal();go('ground')}
-function bookSlot(id,h){if(needLogin())return;bookGround(id);setCK('date',GD);setCK('start',h)}
 const bdg=(a,c='')=>a.map(x=>`<span class="badge ${c}">${x}</span>`).join('');
-views.ground=()=>{const g=GROUNDS.find(x=>x.id===GSEL)||GROUNDS[0];let sl='';
- for(let h=6;h<22;h++)sl+=`<button class="slot" ${slotTaken(g.id,GD,h)?'disabled':''} onclick="bookSlot('${g.id}',${h})">${hr(h)}</button>`;
- return `<div class="pg"><a class="mut" style="cursor:pointer" onclick="go('grounds')">← All grounds</a><div class="card" style="margin-top:10px"><img src="${IMG[g.id]}" alt="${esc(g.name)}" style="width:100%;height:230px;object-fit:cover;display:block"><div class="pad">
- <div class="row sb wp"><h2 class="brand">${esc(g.name)}</h2><span class="badge a">★ ${g.rating}</span></div>
- <div>${bdg(g.sports.map(x=>(SP[x]||'')+' '+x),'g')}${bdg(g.am)}</div><p class="mut">🕒 Open 6 AM – 10 PM · <b>₹${g.price}/hour</b></p>
+views.ground=()=>{const g=GROUNDS.find(x=>x.id===GSEL)||GROUNDS[0];if(!g||!g.sports)return `<div class="pg">${empty('Loading…','One moment.')}</div>`;
+ const free=typeof isFree==='function'&&isFree(g);
+ return `<div class="pg"><a class="mut" style="cursor:pointer" onclick="go('grounds')">← All grounds</a><div class="card" style="margin-top:10px"><div class="pad">
+ <div class="row sb wp"><h2 class="brand">${esc(g.name)}</h2>${free?'<span class="badge g">FREE</span>':''}</div>
+ <div>${bdg(g.sports.map(x=>(SP[x]||'')+' '+x),'g')}</div>${g.phone?`<p class="mut" style="margin-top:8px">Contact: ${g.phone}</p>`:''}
  <h3 style="margin:18px 0 8px">📍 Location</h3><p class="mut" style="margin-bottom:8px">${esc(g.loc)}, Jaipur</p>${MapView('gm_'+g.id,{grounds:[g]},260)}
  <div class="row sb wp" style="margin:12px 0"><b>Distance from you: ${LOC?km1(g.km)+' km':'—'}</b><span class="row wp">${LOC?'':LocationButton('Find Near Me','btn sm')}${GetDirectionsButton(g)}</span></div>
- <h3 style="margin:18px 0 8px">Available booking slots</h3><input type="date" min="${day(0)}" value="${GD}" onchange="GD=this.value||day(0);render()" style="margin-bottom:10px"><div class="slots">${sl}</div>
- <button class="btn full" style="margin-top:16px" onclick="bookGround('${g.id}')">Book Ground</button></div></div></div>`};
+ <div style="margin-top:16px">${typeof venueActions==='function'?venueActions(g):''}</div></div></div></div>`};
 
 /* ---- list wrappers (Near Me sorting, details button, real distance) ---- */
 const _lg=LIST.g;LIST.g=()=>{GROUNDS.splice(0,GROUNDS.length,...(F.g.sort==='near'&&LOC?[...G0].sort((a,b)=>a.km-b.km):G0));
@@ -84,7 +82,7 @@ const _vp=views.players;views.players=()=>_vp().replace('<div class="grid" id="l
 /* ---- nearby page ---- */
 const nbG=()=>GROUNDS.filter(g=>g.km<=N.r).sort((a,b)=>a.km-b.km);
 var nbP=()=>PLAYERS.filter(p=>p.km<=N.r&&(!N.sport||p.sport===N.sport)&&(!N.skill||p.skill===N.skill)&&(!N.av||(N.av==='now'?p.av===0:N.av==='today'?p.av<=1:true))).sort((a,b)=>a.km-b.km);
-const NearbyGrounds=a=>a.length?a.map(g=>`<div class="card pad"><div class="row sb"><b>${esc(g.name)}</b><span class="badge a">★ ${g.rating}</span></div><div style="margin:8px 0">${DistanceBadge(g.km)}<span class="badge">${SP[g.sport]||''} ${g.sport}</span><span class="badge">₹${g.price}/hr</span></div><div class="row wp"><button class="btn sm" onclick="openGround('${g.id}')">View Ground</button>${GetDirectionsButton(g)}</div></div>`).join(''):empty(`No grounds within ${N.r} km`,'Try a wider distance.');
+const NearbyGrounds=a=>a.length?a.map(g=>`<div class="card pad"><div class="row sb"><b>${esc(g.name)}</b>${typeof isFree==='function'&&isFree(g)?'<span class="badge g">FREE</span>':''}</div><div style="margin:8px 0">${DistanceBadge(g.km)}${(g.sports||[g.sport]).map(x=>`<span class="badge">${SP[x]||''} ${x}</span>`).join('')}</div><div class="row wp">${typeof venueActions==='function'?venueActions(g,true):''}${GetDirectionsButton(g)}</div></div>`).join(''):empty(`No grounds within ${N.r} km`,'Try a wider distance.');
 var PlayerCard=(p,i)=>`<div class="card pad"><div class="row">${avatar(p,i)}<div><b>${esc(p.name)}</b><div class="mut">📍 Near ${p.loc} · ~${km1(p.km)} km away</div></div></div><div style="margin:10px 0"><span class="badge g">${SP[p.sport]||''} ${p.sport}</span><span class="badge">⭐ ${p.skill}</span><span class="badge a">★ ${p.rating}</span><span class="badge ${p.av===0?'g':''}">🟢 ${AVL[p.av]}</span></div>
  <div class="row wp"><button class="btn sec sm" onclick="viewProfile('${p.id}')">View Profile</button>${S.invites[p.id]?`<button class="btn sec sm" disabled>Invite ${S.invites[p.id]}</button>`:`<button class="btn sm" onclick="invite('${p.id}')">Invite to Match</button>`}</div></div>`;
 var NearbyPlayers=a=>a.length?a.map(PlayerCard).join(''):empty(`No players within ${N.r} km`,'Try a wider distance or different filters.');
