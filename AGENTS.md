@@ -12,3 +12,4 @@
 - Sports Connect UI is the original vanilla-JS app in public/sc/ (app.js, loc.js, real.js) mounted by src/routes/index.tsx; why: preserves the user's existing design exactly. real.js owns all user/chat/presence logic against Lovable Cloud; never add hardcoded users.
 - Player coordinates live only in user_locations (owner-only); other users get distance via the list_players() function; why: never expose lat/lng.
 - Matches, participants and waitlists live in matches/match_participants/match_waitlist; public/sc/matches.js overrides app.js match functions; joins go through join_match/leave_match RPCs; why: shared across users with capacity checks.
+- Venues live in the venues table (public read-only); public/sc/grounds.js loads them into GROUNDS/G0 and overrides the Grounds page and Host ground picker; why: one shared directory, no hardcoded venue data for new venues.
