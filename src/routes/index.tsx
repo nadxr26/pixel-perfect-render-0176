@@ -38,6 +38,7 @@ const SCRIPTS = [
   "/sc/real.js",
   "/sc/matches.js",
   "/sc/follow.js",
+  "/sc/grounds.js",
 ];
 
 function loadScript(src: string) {
