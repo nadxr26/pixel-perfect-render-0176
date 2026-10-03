@@ -58,7 +58,10 @@ async function handleSession(session) {
   await Promise.all([loadPlayers(), loadConvs()]);
   if (view() === 'auth') go('home'); else render();
 }
-sb.auth.onAuthStateChange((ev, session) => { setTimeout(() => handleSession(session), 0); });
+sb.auth.onAuthStateChange((ev, session) => {
+  if (ev === 'PASSWORD_RECOVERY') { try { sessionStorage.setItem('sc_recovery', '1'); } catch (e) {} location.replace('/reset-password'); return; }
+  setTimeout(() => handleSession(session), 0);
+});
 sb.auth.getSession().then(({ data }) => handleSession(data.session));
 
 /* ---------- presence (real online status) ---------- */
@@ -105,10 +108,11 @@ async function loadPlayers() {
   PLAYERS.splice(0, PLAYERS.length, ...(data || []).map(mapP));
   refreshLive(true);
 }
+const fbtn = (id, sm) => typeof followBtn === 'function' ? followBtn(id, sm) : '';
 const byNear = (a, b) => (a.km == null ? 1e9 : a.km) - (b.km == null ? 1e9 : b.km);
 PlayerCard = p => `<div class="card pad"><div class="row" style="cursor:pointer" onclick="viewProfile('${p.id}')">${avatar(p)}<div><b>${esc(p.name)}</b><div class="mut">${statusTxt(p)}</div><div class="mut">${distTxt(p)}${p.loc !== '—' ? ' · ' + esc(p.loc) : ''}</div></div></div>
  <div style="margin:12px 0">${p.sports.map(s => `<span class="badge g">${SP[s] || ''} ${esc(s)}</span>`).join('')}<span class="badge">${esc(p.skill)}</span></div>
- <div class="row"><button class="btn sec" onclick="viewProfile('${p.id}')">Profile</button><button class="btn full" onclick="openChat('${p.id}')">💬 Chat</button></div></div>`;
+ <div class="row"><button class="btn sec" onclick="viewProfile('${p.id}')">Profile</button>${fbtn(p.id)}<button class="btn full" onclick="openChat('${p.id}')">💬 Chat</button></div></div>`;
 NearbyPlayers = a => a.length ? a.map(PlayerCard).join('') : empty(`No players within ${N.r} km yet`, 'Only real players who share their approximate distance appear here.');
 nbP = () => PLAYERS.filter(p => p.km != null && p.km <= N.r && (!N.sport || p.sports.includes(N.sport)) && (!N.skill || p.skill === N.skill) && (!N.av || N.av !== 'now' || isOn(p.id))).sort(byNear);
 LIST.p = () => {
@@ -132,8 +136,10 @@ function viewProfile(id) {
   openModal(`<div class="row">${avatar(p)}<div><h2 class="brand" style="font-size:24px">${esc(p.name)}</h2><div class="mut">${statusTxt(p)}</div></div></div>
  <div style="margin:14px 0">${p.sports.map(s => `<span class="badge g">${SP[s] || ''} ${esc(s)}</span>`).join('')}<span class="badge">${esc(p.skill)}</span></div>
  <div class="fee"><div><span>Distance</span><b>${distTxt(p).replace('📍 ', '')}</b></div><div><span>City</span><b>${esc(p.loc)}</b></div><div><span>Last active</span><b>${isOn(p.id) ? 'Now' : ago(p.last_seen)}</b></div></div>
+ <div class="row sb" style="margin-top:14px"><div class="mut" id="pf-counts" data-pid="${p.id}">👥 …</div>${fbtn(p.id)}</div>
  <p class="mut" style="margin-top:10px">Only approximate distance is shown. Exact location is never shared.</p>
  <div class="row" style="margin-top:16px"><button class="btn sec full" onclick="closeModal();invite('${p.id}')">⚽ Invite to Match</button><button class="btn full" onclick="closeModal();openChat('${p.id}')">💬 Chat</button></div>`);
+  if (typeof followCounts === 'function') followCounts(p.id);
 }
 async function invite(pid) {
   if (needLogin()) return;
@@ -242,7 +248,7 @@ views.auth = () => {
  <label>City</label><input name="city" value="Jaipur" required><label>Sports you play</label><div class="sp-chk">${SPN.map(s => `<label><input type="checkbox" name="sports" value="${s}">${SP[s]} ${s}</label>`).join('')}</div>
  <label>Skill level</label><select name="skill">${o(SKL, 'Intermediate')}</select><label>Profile photo (optional, &lt;150 KB)</label><input name="photo" type="file" accept="image/*">
  <div id="aerr"></div><button class="btn full" style="margin-top:16px">Sign up</button></form>
- <form class="card pad" onsubmit="login(event)" style="align-self:start"><h2 class="brand">Log in</h2><label>Email</label><input name="email" type="email" required><label>Password</label><input name="password" type="password" required><div id="lerr"></div><button class="btn full" style="margin-top:16px">Log in</button></form></div></div>`;
+ <form class="card pad" onsubmit="login(event)" style="align-self:start"><h2 class="brand">Log in</h2><label>Email</label><input name="email" type="email" required><label>Password</label><input name="password" type="password" required><div id="lerr"></div><button class="btn full" style="margin-top:16px">Log in</button><div style="text-align:center;margin-top:14px"><a style="color:var(--g);font-weight:700;font-size:14px;cursor:pointer" onclick="forgotPassword()">Forgot password?</a></div></form></div></div>`;
 };
 async function signup(e) {
   e.preventDefault();
@@ -273,6 +279,28 @@ async function login(e) {
   if (error) { $('#lerr').innerHTML = `<div class="err">${/confirm/i.test(error.message) ? 'Please confirm your email first (check your inbox).' : 'Incorrect email or password'}</div>`; return; }
   toast('Logged in');
 }
+function forgotPassword() {
+  const typed = document.querySelector('form[onsubmit^="login"] input[name="email"]');
+  openModal(`<h2 class="brand">Reset your password</h2><p class="mut" style="margin:6px 0 4px">Enter the email you signed up with and we'll send you a link to choose a new password.</p>
+  <form onsubmit="sendReset(event)"><label>Email</label><input name="email" type="email" required autocomplete="email" value="${esc(typed ? typed.value : '')}"><div id="ferr"></div>
+  <div class="row" style="margin-top:16px"><button type="button" class="btn sec" onclick="closeModal()">Cancel</button><button class="btn full">Send reset link</button></div></form>`);
+}
+async function sendReset(e) {
+  e.preventDefault();
+  const fm = e.target, email = fm.email.value.trim().toLowerCase(), btn = fm.querySelector('button.btn.full');
+  if (!/^\S+@\S+\.\S+$/.test(email)) { $('#ferr').innerHTML = '<div class="err">Enter a valid email address</div>'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/reset-password' });
+  if (error) {
+    btn.disabled = false; btn.textContent = 'Send reset link';
+    $('#ferr').innerHTML = `<div class="err">${/rate|seconds|too many|limit/i.test(error.message) ? 'Too many requests – please wait a minute and try again.' : 'Could not send the email. Please check your connection and try again.'}</div>`;
+    return;
+  }
+  // Same message whether or not the email is registered (does not reveal which emails have accounts)
+  $('#modal .modal > div').innerHTML = `<div style="text-align:center"><div style="font-size:54px">📧</div><h2 class="brand">Check your email</h2>
+    <p class="mut" style="margin:8px 0 16px">If an account exists for <b>${esc(email)}</b>, we've sent a link to reset your password. The link expires soon, so use it right away. Don't see it? Check your spam folder.</p>
+    <button class="btn full" onclick="closeModal()">Back to Log in</button></div>`;
+}
 async function logout() {
   await touch(); if (PCH) await PCH.untrack();
   await sb.auth.signOut(); toast('Logged out'); go('home');
@@ -286,7 +314,7 @@ views.profile = () => {
  <label>Full name</label><input name="name" value="${esc(u.name)}"><label>City</label><input name="city" value="${esc(u.city)}">
  <label>Sports you play</label><div class="sp-chk">${SPN.map(s => `<label><input type="checkbox" name="sports" value="${s}" ${u.sports.includes(s) ? 'checked' : ''}>${SP[s]} ${s}</label>`).join('')}</div>
  <label>Skill</label><select name="skill">${o(SKL, u.skill)}</select><label>Change profile photo (&lt;150 KB)</label><input name="photo" type="file" accept="image/*">
- <div class="row" style="margin-top:16px"><button class="btn full">Save profile</button><button type="button" class="btn red" onclick="logout()">Log out</button></div></form>${LocationSettings()}</div>`;
+ <div class="row" style="margin-top:16px"><button class="btn full">Save profile</button><button type="button" class="btn red" onclick="logout()">Log out</button></div></form>${typeof FollowStats === 'function' ? FollowStats() : ''}${LocationSettings()}</div>`;
 };
 async function saveProfile(e) {
   e.preventDefault();

@@ -37,6 +37,7 @@ const SCRIPTS = [
   "/sc/loc.js",
   "/sc/real.js",
   "/sc/matches.js",
+  "/sc/follow.js",
 ];
 
 function loadScript(src: string) {

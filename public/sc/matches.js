@@ -4,16 +4,23 @@
   let MUID = null, MCH2 = null, NAMES = {}, T = null;
   const err = e => toast((e && e.message || 'Something went wrong').replace(/^.*?: /, ''), 1);
 
+  let SEQ = 0;
   async function loadMatches() {
     if (!MUID) { S.matches.length = 0; return; }
-    const [{ data: ms }, { data: ps }, { data: ws }] = await Promise.all([
-      sb.from('matches').select('*').eq('status', 'open').gte('match_date', day(0)).order('match_date').order('start_hour').limit(300),
-      sb.from('match_participants').select('match_id,user_id,spots,joined_at').order('joined_at'),
-      sb.from('match_waitlist').select('match_id,user_id,created_at').order('created_at')]);
+    const seq = ++SEQ;
+    const { data: rows, error } = await sb.from('matches')
+      .select('*, match_participants(user_id,spots,joined_at), match_waitlist(user_id,created_at)')
+      .eq('status', 'open').gte('match_date', day(0)).order('match_date').order('start_hour').limit(300)
+      .order('joined_at', { referencedTable: 'match_participants' }).order('created_at', { referencedTable: 'match_waitlist' });
+    if (seq !== SEQ) return; // a newer load already started; ignore this stale response
+    if (error) { console.error('[matches] load failed', error); return; }
+    const ms = rows || [], ps = [], ws = [];
+    ms.forEach(m => { (m.match_participants || []).forEach(p => ps.push({ ...p, match_id: m.id })); (m.match_waitlist || []).forEach(w => ws.push({ ...w, match_id: m.id })); });
     const ids = new Set();
     (ms || []).forEach(m => ids.add(m.host_id)); (ps || []).forEach(p => ids.add(p.user_id)); (ws || []).forEach(w => ids.add(w.user_id));
     const need = [...ids].filter(i => !NAMES[i]);
     if (need.length) { const { data: pr } = await sb.from('profiles').select('id,name').in('id', need); (pr || []).forEach(p => NAMES[p.id] = p.name || 'Player'); }
+    if (seq !== SEQ) return;
     const nm = i => NAMES[i] || 'Player';
     const list = (ms || []).map(m => {
       const part = (ps || []).filter(p => p.match_id === m.id), joined = {};
@@ -54,15 +61,17 @@
         reload();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'match_waitlist' }, reload)
-      .subscribe();
+      .subscribe(st => { if (st === 'SUBSCRIBED') loadMatches(); else if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT') console.warn('[matches] realtime', st); });
     await loadMatches();
   }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && MUID) reload(); });
   sb.auth.onAuthStateChange((ev, s) => setTimeout(() => onSession(s), 0));
   sb.auth.getSession().then(({ data }) => onSession(data.session));
 
   /* ---------- actions (replace the old device-only versions) ---------- */
+  let HOSTING = false;
   window.hostMatch = async function (e) {
-    e.preventDefault(); if (needLogin()) return;
+    e.preventDefault(); if (needLogin() || HOSTING) return;
     const f = Object.fromEntries(new FormData(e.target)), er = [];
     if (f.title.trim().length < 3) er.push('Match name needs 3+ characters');
     if (f.date < day(0)) er.push('Date cannot be in the past');
@@ -71,20 +80,21 @@
     if (+f.fee < 0 || f.fee === '') er.push('Enter a match fee (0 or more)');
     if (er.length) { $('#herr').innerHTML = er.map(x => `<div class="err">• ${x}</div>`).join(''); return; }
     const b = e.target.querySelector('button[type=submit],button:not([type])'); if (b) b.disabled = true;
+    HOSTING = true;
     const { error } = await sb.from('matches').insert({ host_id: MUID, title: f.title.trim(), sport: f.sport, ground_id: f.gid, match_date: f.date,
       start_hour: +f.start, end_hour: +f.end, max_players: +f.max, fee: +f.fee, skill: f.skill, description: (f.desc || '').trim().slice(0, 1000) });
-    if (b) b.disabled = false;
+    HOSTING = false; if (b) b.disabled = false;
     if (error) return err(error);
     addNotification(`Match "${f.title.trim()}" created. Need ${+f.max - 1} more players – invite some!`); toast('Match created!');
     await loadMatches(); go('mymatches');
   };
-  window.joinMatch = function (id, n) {
+  window.joinMatch = async function (id, n) {
     const m = mById(id);
-    sb.rpc('join_match', { _m: id, _spots: n }).then(({ error }) => {
-      if (error) return err(error);
-      if (m) addNotification(`You joined "${m.title}"`);
-      loadMatches();
-    });
+    const { error } = await sb.rpc('join_match', { _m: id, _spots: n });
+    if (error) { err(error); await loadMatches(); return false; }
+    if (m) addNotification(`You joined "${m.title}"`);
+    await loadMatches();
+    return true;
   };
   window.joinCheckout = function (id) {
     if (needLogin()) return; const m = mById(id); if (!m) return;

@@ -117,10 +117,12 @@ function matchModal(){const m=mById(CK.mid),n=CK.players;
  ${feeBox(m.fee*n,`Entry fee (${n} × ₹${m.fee})`,n)}${payBox()}
  <div class="row" style="margin-top:18px"><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn full" onclick="pay()">Pay (Demo)</button></div>`)}
 function pay(){const c=CK;$('#modal .btn.full').textContent='Processing demo payment…';$('#modal .btn.full').disabled=true;
- setTimeout(()=>{const id='SC-'+Math.floor(10000+Math.random()*89999);let b;
+ setTimeout(async()=>{const id='SC-'+Math.floor(10000+Math.random()*89999);let b;
   if(c.kind==='ground'){const g=gr(c.gid);for(let i=0;i<c.dur;i++)S.slots.push(`${c.gid}|${c.date}|${c.start+i}`);
    b={id,kind:'ground',title:g.name,sport:g.sport,date:c.date,time:`${hr(c.start)} – ${hr(c.start+c.dur)}`,base:g.price*c.dur,players:c.players,gid:c.gid,start:c.start,dur:c.dur}}
-  else{const m=mById(c.mid);b={id,kind:'match',title:m.title,sport:m.sport,date:m.date,time:`${hr(m.start)} – ${hr(m.end)}`,base:m.fee*c.players,players:c.players,gid:m.gid,mid:m.id};joinMatch(m.id,c.players)}
+  else{const m=mById(c.mid);if(!m){closeModal();toast('This match is no longer available',1);return}
+   if((await joinMatch(m.id,c.players))===false){closeModal();return}
+   b={id,kind:'match',title:m.title,sport:m.sport,date:m.date,time:`${hr(m.start)} – ${hr(m.end)}`,base:m.fee*c.players,players:c.players,gid:m.gid,mid:m.id}}
   b.amount=b.base+b.players*FEE;b.pm=c.pay;b.status='Upcoming';S.bookings.unshift(b);addNotification(`Booking ${id} confirmed (demo payment) – ${b.title}`);
   openModal(`<div style="text-align:center"><div style="font-size:54px">🎉</div><h2 class="brand">Booking confirmed</h2><p class="mut">Demo payment – no real money was charged</p>
   <div class="fee" style="text-align:left"><div><span>Booking ID</span><b>${id}</b></div><div><span>${esc(b.title)}</span><span>${fmtD(b.date)}</span></div><div><span>Time</span><span>${b.time}</span></div><div><span>Players</span><span>${b.players}</span></div><div><span>Base</span><span>₹${b.base}</span></div><div><span>Platform fee</span><span>₹${b.players*FEE}</span></div><div class="t"><span>Total</span><span>₹${b.amount}</span></div></div>
