@@ -22,9 +22,10 @@ try{const a=localStorage.getItem('sc_manual');if(a&&AREA[a])setLoc(AREA[a],a,'ma
 /* ---- reusable components ---- */
 const DistanceBadge=k=>LOC?`<span class="badge g dist">📍 ${km1(k)} km away</span>`:'';
 const LocationButton=(t='Near Me',c='btn')=>`<button class="${c}" onclick="nearMe()">📍 ${t}</button>`;
-const GetDirectionsButton=(g,c='btn sec sm')=>`<button class="${c}" onclick="directions('${g.id}')">🧭 Get Directions</button>`;
-function directions(id){const g=GROUNDS.find(x=>x.id===id);/* GPS users: Google uses the device location, so we never put coordinates in the URL */
- const o=LOC&&LOC.src==='manual'?`&origin=${LOC.pos[0]},${LOC.pos[1]}`:'';window.open(`https://www.google.com/maps/dir/?api=1&destination=${g.pos[0]},${g.pos[1]}${o}`,'_blank','noopener')}
+const GetDirectionsButton=(g,c='btn sec sm')=>g.address?`<button class="${c}" onclick="directions('${g.id}')">🧭 Get Directions</button>`:(g.sports?'<span class="mut" style="font-size:13px">📍 Location needs verification</span>':'');
+function directions(id){const g=GROUNDS.find(x=>x.id===id);if(!g||!g.address)return;
+ // Verified street address as the destination text — Google resolves this to the exact venue, never a hashed/guessed coordinate.
+ window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(g.name+', '+g.address)}`,'_blank','noopener')}
 const LocationPermission=()=>`<div style="text-align:center"><div style="font-size:48px">📍</div><h2 class="brand">SPORTS CONNECT wants to access your location.</h2><p class="mut" style="margin:8px 0 16px">Used only for distances, nearby discovery, map position and directions. Other users never see your exact location.</p><div class="row"><button class="btn sec full" onclick="manualPicker('No problem — pick your area instead.')">Not Now</button><button class="btn full" onclick="allowLoc()">Allow Location</button></div></div>`;
 const ERR={0:'Your browser does not support location.',1:'Location permission was denied.',2:'Your location is unavailable right now.',3:'Getting your location took too long.'};
 const mpL=q=>Object.keys(AREA).filter(a=>a.toLowerCase().includes(q.toLowerCase())).map(a=>`<button class="btn sec sm" onclick="pickArea('${a}')">${a==='Jaipur'?'🏙️':'📍'} ${a}</button>`).join('')||'<span class="mut">No match</span>';
@@ -42,7 +43,7 @@ function afterLoc(){const v=location.hash.slice(1)||'home';
 
 /* ---- map ---- */
 const ico=(c,h)=>L.divIcon({className:'',html:`<div class="mk ${c}">${h}</div>`,iconSize:c==='u'?[34,34]:[34,34],iconAnchor:[17,17],popupAnchor:[0,-16]});
-const gPopup=g=>`<div class="pop"><b>${esc(g.name)}</b>${LOC?`<div>📍 ${km1(g.km)} km away</div>`:''}<div>${(g.sports||[g.sport]).map(x=>(SP[x]||'')+' '+x).join(', ')}</div><div class="row">${typeof venueActions==='function'?venueActions(g,true):''}${GetDirectionsButton(g)}</div></div>`;
+const gPopup=g=>`<div class="pop"><b>${esc(g.name)}</b><div>${(g.sports||[g.sport]).map(x=>(SP[x]||'')+' '+x).join(', ')}</div><div class="row">${typeof venueActions==='function'?venueActions(g,true):''}${GetDirectionsButton(g)}</div></div>`;
 const pPopup=p=>`<div class="pop"><b>${esc(p.name)}</b><div>${SP[p.sport]||''} ${p.sport} · ${p.skill}</div><div>📍 ${LOC?`~${km1(p.km)} km away · `:''}Near ${p.loc}</div><div class="row"><button class="btn sm" onclick="viewProfile('${p.id}')">View Profile</button></div></div>`;
 function MapView(id,o,h=380){MS[id]=o;return `<div class="mapbox"><div class="scmap" id="${id}" style="height:${h}px"></div></div>`}
 function mountMaps(){MAPS=MAPS.filter(m=>document.body.contains(m.getContainer())||(m.remove(),false));
@@ -66,7 +67,7 @@ views.ground=()=>{const g=GROUNDS.find(x=>x.id===GSEL)||GROUNDS[0];if(!g||!g.spo
  <div class="row sb wp"><h2 class="brand">${esc(g.name)}</h2>${free?'<span class="badge g">FREE</span>':''}</div>
  <div>${bdg(g.sports.map(x=>(SP[x]||'')+' '+x),'g')}</div>${g.phone?`<p class="mut" style="margin-top:8px">Contact: ${g.phone}</p>`:''}
  <h3 style="margin:18px 0 8px">📍 Location</h3><p class="mut" style="margin-bottom:8px">${esc(g.loc)}, Jaipur</p>${MapView('gm_'+g.id,{grounds:[g]},260)}
- <div class="row sb wp" style="margin:12px 0"><b>Distance from you: ${LOC?km1(g.km)+' km':'—'}</b><span class="row wp">${LOC?'':LocationButton('Find Near Me','btn sm')}${GetDirectionsButton(g)}</span></div>
+ <div class="row wp" style="margin:12px 0">${GetDirectionsButton(g)}</div>
  <div style="margin-top:16px">${typeof venueActions==='function'?venueActions(g):''}</div></div></div></div>`};
 
 /* ---- list wrappers (Near Me sorting, details button, real distance) ---- */
@@ -80,9 +81,9 @@ const _vg=views.grounds;views.grounds=()=>_vg().replace('<div class="grid" id="l
 const _vp=views.players;views.players=()=>_vp().replace('<div class="grid" id="list">',nmBar('p'));
 
 /* ---- nearby page ---- */
-const nbG=()=>GROUNDS.filter(g=>g.km<=N.r).sort((a,b)=>a.km-b.km);
+const nbG=()=>GROUNDS; // ground-venue addresses are verified text, not device-distance GPS, so we list all of them here rather than filter by a fake radius
 var nbP=()=>PLAYERS.filter(p=>p.km<=N.r&&(!N.sport||p.sport===N.sport)&&(!N.skill||p.skill===N.skill)&&(!N.av||(N.av==='now'?p.av===0:N.av==='today'?p.av<=1:true))).sort((a,b)=>a.km-b.km);
-const NearbyGrounds=a=>a.length?a.map(g=>`<div class="card pad"><div class="row sb"><b>${esc(g.name)}</b>${typeof isFree==='function'&&isFree(g)?'<span class="badge g">FREE</span>':''}</div><div style="margin:8px 0">${DistanceBadge(g.km)}${(g.sports||[g.sport]).map(x=>`<span class="badge">${SP[x]||''} ${x}</span>`).join('')}</div><div class="row wp">${typeof venueActions==='function'?venueActions(g,true):''}${GetDirectionsButton(g)}</div></div>`).join(''):empty(`No grounds within ${N.r} km`,'Try a wider distance.');
+const NearbyGrounds=a=>a.length?a.map(g=>`<div class="card pad"><div class="row sb"><b>${esc(g.name)}</b>${typeof isFree==='function'&&isFree(g)?'<span class="badge g">FREE</span>':''}</div><div style="margin:8px 0">${(g.sports||[g.sport]).map(x=>`<span class="badge">${SP[x]||''} ${x}</span>`).join('')}</div><div class="row wp">${typeof venueActions==='function'?venueActions(g,true):''}${GetDirectionsButton(g)}</div></div>`).join(''):empty('No grounds listed yet','Check back soon.');
 var PlayerCard=(p,i)=>`<div class="card pad"><div class="row">${avatar(p,i)}<div><b>${esc(p.name)}</b><div class="mut">📍 Near ${p.loc} · ~${km1(p.km)} km away</div></div></div><div style="margin:10px 0"><span class="badge g">${SP[p.sport]||''} ${p.sport}</span><span class="badge">⭐ ${p.skill}</span><span class="badge a">★ ${p.rating}</span><span class="badge ${p.av===0?'g':''}">🟢 ${AVL[p.av]}</span></div>
  <div class="row wp"><button class="btn sec sm" onclick="viewProfile('${p.id}')">View Profile</button>${S.invites[p.id]?`<button class="btn sec sm" disabled>Invite ${S.invites[p.id]}</button>`:`<button class="btn sm" onclick="invite('${p.id}')">Invite to Match</button>`}</div></div>`;
 var NearbyPlayers=a=>a.length?a.map(PlayerCard).join(''):empty(`No players within ${N.r} km`,'Try a wider distance or different filters.');
