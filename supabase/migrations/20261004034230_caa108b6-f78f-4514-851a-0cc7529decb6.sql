@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.matches_from_booking(), public.participants_sync(), public.match_host_join() FROM PUBLIC, anon, authenticated;
