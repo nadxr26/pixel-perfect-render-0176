@@ -123,12 +123,27 @@
   };
   const _host = views.host;
   views.host = () => {
-    const h = _host(); if (!h) return h;
+    let h = _host(); if (!h) return h;
+    const bk = window.PREBOOK;
+    if (bk) {
+      const g = gr(bk.ground_id), share = bk.amount_per_player - FEE;
+      h = h.replace(/<select name="gid">[\s\S]*?<\/select>/, `<input type="hidden" name="gid" value="${bk.ground_id}"><input type="hidden" name="booking_id" value="${bk.id}">
+        <div class="fee"><div><span>Ground</span><b>${esc(g.name || 'Booked ground')}</b></div><div><span>Ground Booking</span><b>₹${+bk.total_price}</b></div>
+        <div><span>Ground Share</span><b>₹${share}/player</b></div><div><span>Sports Connect Fee</span><b>₹${FEE}/player</b></div><div class="t"><span>Each player pays</span><span>₹${bk.amount_per_player}</span></div></div>`)
+        .replace(/name="date" type="date" min="([^"]+)" value="[^"]+"/, `name="date" type="date" min="$1" value="${bk.booking_date}"`)
+        .replace(/(<select name="start">[\s\S]*?<\/select>)/, m => m.replace(/ selected/g, '').replace(`value="${bk.start_hour}"`, `value="${bk.start_hour}" selected`))
+        .replace(/(<select name="end">[\s\S]*?<\/select>)/, m => m.replace(/ selected/g, '').replace(`value="${bk.end_hour}"`, `value="${bk.end_hour}" selected`))
+        .replace(/<input name="max" type="number" value="10" required>/, `<input name="max" type="number" value="${bk.required_players}" readonly>`)
+        .replace(/<input name="fee" type="number" value="100" required>/, `<input name="fee" type="number" value="${share}" readonly>`)
+        .replace('<h2 class="brand">Host a Match</h2>', '<h2 class="brand">Host a Match</h2><p class="mut">Using your ground booking. Players and price come from the booking.</p>');
+      return h;
+    }
     const pre = window.PRESEL && G0.some(g => g.id === window.PRESEL) ? window.PRESEL : (G0[0] || {}).id; window.PRESEL = null;
     const sel = `<select name="gid" onchange="venueInfo(this.value)">${G0.map(g => `<option value="${g.id}" ${g.id === pre ? 'selected' : ''}>${esc(g.name)} – ${esc(g.loc)}</option>`).join('')}</select><div id="vinfo"></div>`;
     setTimeout(() => pre && venueInfo(pre), 0);
     return h.replace(/<select name="gid">[\s\S]*?<\/select>/, sel);
   };
+  window.addEventListener('hashchange', () => { if (location.hash !== '#host') window.PREBOOK = null; });
 
   loadVenues();
 })();
