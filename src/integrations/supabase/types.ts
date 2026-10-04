@@ -85,6 +85,63 @@ export type Database = {
           },
         ]
       }
+      ground_bookings: {
+        Row: {
+          booking_date: string
+          created_at: string
+          end_hour: number
+          ground_id: string
+          host_id: string
+          id: string
+          platform_fee_per_player: number
+          required_players: number
+          start_hour: number
+          status: string
+          total_price: number
+        }
+        Insert: {
+          booking_date: string
+          created_at?: string
+          end_hour: number
+          ground_id: string
+          host_id?: string
+          id?: string
+          platform_fee_per_player?: number
+          required_players: number
+          start_hour: number
+          status?: string
+          total_price: number
+        }
+        Update: {
+          booking_date?: string
+          created_at?: string
+          end_hour?: number
+          ground_id?: string
+          host_id?: string
+          id?: string
+          platform_fee_per_player?: number
+          required_players?: number
+          start_hour?: number
+          status?: string
+          total_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ground_bookings_ground_id_fkey"
+            columns: ["ground_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ground_bookings_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_participants: {
         Row: {
           joined_at: string
@@ -290,11 +347,13 @@ export type Database = {
         Row: {
           access: string
           active: boolean
+          address: string | null
           area: string
           bookable: boolean
           created_at: string
           id: string
           kind: string
+          location_verified: boolean
           name: string
           phone: string | null
           price_per_hour: number | null
@@ -303,11 +362,13 @@ export type Database = {
         Insert: {
           access?: string
           active?: boolean
+          address?: string | null
           area: string
           bookable?: boolean
           created_at?: string
           id: string
           kind: string
+          location_verified?: boolean
           name: string
           phone?: string | null
           price_per_hour?: number | null
@@ -316,11 +377,13 @@ export type Database = {
         Update: {
           access?: string
           active?: boolean
+          address?: string | null
           area?: string
           bookable?: boolean
           created_at?: string
           id?: string
           kind?: string
+          location_verified?: boolean
           name?: string
           phone?: string | null
           price_per_hour?: number | null
