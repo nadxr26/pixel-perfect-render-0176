@@ -87,6 +87,7 @@ export type Database = {
       }
       ground_bookings: {
         Row: {
+          amount_per_player: number
           booking_date: string
           created_at: string
           end_hour: number
@@ -100,6 +101,7 @@ export type Database = {
           total_price: number
         }
         Insert: {
+          amount_per_player?: number
           booking_date: string
           created_at?: string
           end_hour: number
@@ -113,6 +115,7 @@ export type Database = {
           total_price: number
         }
         Update: {
+          amount_per_player?: number
           booking_date?: string
           created_at?: string
           end_hour?: number
@@ -144,20 +147,29 @@ export type Database = {
       }
       match_participants: {
         Row: {
+          amount: number | null
           joined_at: string
           match_id: string
+          paid_at: string | null
+          payment_status: string
           spots: number
           user_id: string
         }
         Insert: {
+          amount?: number | null
           joined_at?: string
           match_id: string
+          paid_at?: string | null
+          payment_status?: string
           spots?: number
           user_id: string
         }
         Update: {
+          amount?: number | null
           joined_at?: string
           match_id?: string
+          paid_at?: string | null
+          payment_status?: string
           spots?: number
           user_id?: string
         }
@@ -199,11 +211,14 @@ export type Database = {
       }
       matches: {
         Row: {
+          amount_per_player: number | null
+          booking_id: string | null
           created_at: string
           description: string
           end_hour: number
           fee: number
           ground_id: string
+          ground_price: number | null
           host_id: string
           id: string
           match_date: string
@@ -216,11 +231,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          amount_per_player?: number | null
+          booking_id?: string | null
           created_at?: string
           description?: string
           end_hour: number
           fee?: number
           ground_id: string
+          ground_price?: number | null
           host_id?: string
           id?: string
           match_date: string
@@ -233,11 +251,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          amount_per_player?: number | null
+          booking_id?: string | null
           created_at?: string
           description?: string
           end_hour?: number
           fee?: number
           ground_id?: string
+          ground_price?: number | null
           host_id?: string
           id?: string
           match_date?: string
@@ -249,7 +270,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "matches_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "ground_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -417,6 +446,9 @@ export type Database = {
         }[]
       }
       mark_read: { Args: { _conv: string }; Returns: undefined }
+      pay_demo: { Args: { _m: string }; Returns: undefined }
+      remove_player: { Args: { _m: string; _u: string }; Returns: undefined }
+      sync_payments: { Args: { _m: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
