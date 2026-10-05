@@ -50,11 +50,11 @@ export const Route = createFileRoute("/api/assistant")({
               { headers: { apikey: anon } },
             );
             if (r.ok) {
-              const rows = (await r.json()) as Array<Record<string, unknown>>;
+              const rows = (await r.json()) as Array<{ name: string; area: string; sports: string[] | null; access: string; price_per_hour: number | null; phone: string | null }>;
               venues = rows
                 .map(
                   (v) =>
-                    `${v.name} (${v.area}; ${(v.sports as string[] | null)?.join("/") ?? ""}; ${v.access === "free" ? "FREE public" : "private paid"}${v.price_per_hour ? `; Rs ${v.price_per_hour}/hr` : ""}${v.phone ? `; phone ${v.phone}` : ""})`,
+                    `${v.name} (${v.area}; ${v.sports?.join("/") ?? ""}; ${v.access === "free" ? "FREE public" : "private paid"}${v.price_per_hour ? `; Rs ${v.price_per_hour}/hr` : ""}${v.phone ? `; phone ${v.phone}` : ""})`,
                 )
                 .join("\n");
             }
