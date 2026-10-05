@@ -15,10 +15,11 @@
   const supported = sport => WALLPAPERS[sport] ? sport : '';
   const selectedSport = () => {
     const page = location.hash.slice(1) || 'home';
+    const filters = typeof F === 'undefined' ? { p: {}, m: {}, g: {} } : F;
     if (page === 'host') return supported(document.querySelector('form select[name="sport"]')?.value);
-    if (page === 'players') return supported(window.F?.p?.sport);
-    if (page === 'matches') return supported(window.F?.m?.sport);
-    if (page === 'grounds' || page === 'ground' || page === 'nearby') return supported(window.F?.g?.sport);
+    if (page === 'players') return supported(filters.p?.sport);
+    if (page === 'matches') return supported(filters.m?.sport);
+    if (page === 'grounds' || page === 'ground' || page === 'nearby') return supported(filters.g?.sport);
     return '';
   };
 
