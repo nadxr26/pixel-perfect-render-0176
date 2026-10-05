@@ -1,0 +1,1 @@
+- [x] AI assistant (Coach): floating chat, voice in, read-aloud

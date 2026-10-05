@@ -40,6 +40,7 @@ const SCRIPTS = [
   "/sc/follow.js",
   "/sc/grounds.js",
   "/sc/background.js",
+  "/sc/assistant.js",
 ];
 
 function loadScript(src: string) {
