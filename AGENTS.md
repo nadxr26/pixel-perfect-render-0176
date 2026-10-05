@@ -13,3 +13,4 @@
 - Player coordinates live only in user_locations (owner-only); other users get distance via the list_players() function; why: never expose lat/lng.
 - Matches, participants and waitlists live in matches/match_participants/match_waitlist; public/sc/matches.js overrides app.js match functions; joins go through join_match/leave_match RPCs; why: shared across users with capacity checks.
 - Venues live in the venues table (public read-only); public/sc/grounds.js loads them into GROUNDS/G0 and overrides the Grounds page and Host ground picker; why: one shared directory, no hardcoded venue data for new venues.
+- Sport wallpaper switching is presentation-only in public/sc/background.js and must not own product state; why: cinematic backgrounds remain isolated from auth, match, venue and chat behavior.

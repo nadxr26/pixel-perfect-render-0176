@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const SHELL = `<nav class="top"><div class="wrap bar">
+const SHELL = `<div class="sc-wallpaper" aria-hidden="true"><div class="sc-wallpaper-layer is-active"></div><div class="sc-wallpaper-layer"></div></div><nav class="top"><div class="wrap bar">
  <div class="logo brand" onclick="go('home')"><i>⚽</i><span>SPORTS<b>CONNECT</b></span></div>
  <div class="links" id="links"></div>
  <div class="right" id="right"></div>
@@ -39,6 +39,7 @@ const SCRIPTS = [
   "/sc/matches.js",
   "/sc/follow.js",
   "/sc/grounds.js",
+  "/sc/background.js",
 ];
 
 function loadScript(src: string) {
