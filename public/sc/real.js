@@ -400,6 +400,6 @@ chrome = function () {
   if (me()) { const bell = $('#right .ib'); if (bell) bell.insertAdjacentHTML('beforebegin', `<button class="ib" onclick="go('messages')" aria-label="Messages">💬${UNREAD ? `<em>${UNREAD}</em>` : ''}</button>`); }
 };
 const _render2 = render;
-render = function () { _render2(); if (view() === 'messages' && ACTIVE) paintThread(); };
+render = function () { _render2(); if (view() === 'messages' && ACTIVE) { paintThread(); paintReply(); } };
 window.addEventListener('hashchange', () => { if (view() !== 'messages') ACTIVE = null; render(); });
 render();
