@@ -157,32 +157,42 @@ async function dm(other) {
   if (error) { toast('Could not open chat', 1); return null; }
   return data;
 }
-async function openChat(other) { if (needLogin()) return; const c = await dm(other); if (!c) return; ACTIVE = c; MSGS = []; go('messages'); await loadConvs(); loadThread(); }
-function openConv(c) { ACTIVE = c; MSGS = []; render(); loadThread(); }
-function closeConv() { ACTIVE = null; render(); }
+async function openChat(other) { if (needLogin()) return; const c = await dm(other); if (!c) return; ACTIVE = c; MSGS = []; REPLY = null; go('messages'); await loadConvs(); loadThread(); }
+function openConv(c) { ACTIVE = c; MSGS = []; REPLY = null; MSEL = null; render(); loadThread(); }
+function closeConv() { ACTIVE = null; REPLY = null; render(); }
+let REPLY = null, MSEL = null, HIDDEN = {};
+const MCOLS = 'id,conversation_id,sender_id,message,created_at,read_at,reply_to';
 async function loadConvs() {
   if (!CUR) return;
-  const { data: mem } = await sb.from('conversation_members').select('conversation_id,user_id');
-  const other = {}; (mem || []).forEach(m => { if (m.user_id !== CUR) other[m.conversation_id] = m.user_id; });
-  const ids = Object.keys(other);
+  const { data: mem } = await sb.from('conversation_members').select('conversation_id,user_id,hidden_at');
+  const members = {}; HIDDEN = {};
+  (mem || []).forEach(m => { (members[m.conversation_id] = members[m.conversation_id] || []).push(m.user_id); if (m.user_id === CUR) HIDDEN[m.conversation_id] = m.hidden_at; });
+  const ids = Object.keys(HIDDEN);
   if (!ids.length) { CONVS = []; UNREAD = 0; refreshLive(); return; }
-  const [{ data: msgs }, { data: profs }] = await Promise.all([
-    sb.from('messages').select('id,conversation_id,sender_id,message,created_at,read_at').in('conversation_id', ids).order('created_at', { ascending: false }).limit(1000),
-    sb.from('profiles').select('id,name,photo,last_seen').in('id', Object.values(other))]);
+  const uids = [...new Set((mem || []).map(m => m.user_id))];
+  const [{ data: msgs }, { data: profs }, { data: cv }] = await Promise.all([
+    sb.from('messages').select(MCOLS).in('conversation_id', ids).order('created_at', { ascending: false }).limit(1000),
+    sb.from('profiles').select('id,name,photo,last_seen').in('id', uids),
+    sb.from('conversations').select('id,is_group,name,created_at').in('id', ids)]);
   const pm = {}; (profs || []).forEach(p => pm[p.id] = p);
+  const cm = {}; (cv || []).forEach(c => cm[c.id] = c);
   CONVS = ids.map(id => {
-    const ms = (msgs || []).filter(m => m.conversation_id === id);
-    return { id, other: pm[other[id]] || { id: other[id], name: 'Player' }, last: ms[0] || null, unread: ms.filter(m => m.sender_id !== CUR && !m.read_at).length };
-  }).filter(c => c.last || c.id === ACTIVE).sort((a, b) => new Date(b.last ? b.last.created_at : 0) - new Date(a.last ? a.last.created_at : 0));
+    const h = HIDDEN[id], ms = (msgs || []).filter(m => m.conversation_id === id && (!h || m.created_at > h));
+    const g = cm[id] || {}, others = (members[id] || []).filter(u => u !== CUR).map(u => pm[u] || { id: u, name: 'Player' });
+    const other = g.is_group ? { id: 'g-' + id, name: g.name || 'Group' } : (others[0] || { id: '', name: 'Player' });
+    return { id, group: !!g.is_group, members: others, other, last: ms[0] || null, unread: ms.filter(m => m.sender_id !== CUR && !m.read_at).length, since: g.created_at };
+  }).filter(c => c.last || c.id === ACTIVE || (c.group && !HIDDEN[c.id]))
+    .sort((a, b) => new Date(b.last ? b.last.created_at : b.since || 0) - new Date(a.last ? a.last.created_at : a.since || 0));
   UNREAD = CONVS.reduce((s, c) => s + c.unread, 0);
   refreshLive();
 }
 async function loadThread() {
   if (!ACTIVE) return;
   const c = ACTIVE;
-  const { data } = await sb.from('messages').select('id,conversation_id,sender_id,message,created_at,read_at').eq('conversation_id', c).order('created_at', { ascending: true }).limit(500);
+  const { data } = await sb.from('messages').select(MCOLS).eq('conversation_id', c).order('created_at', { ascending: true }).limit(500);
   if (c !== ACTIVE) return;
-  MSGS = data || []; paintThread();
+  const h = HIDDEN[c];
+  MSGS = (data || []).filter(m => !h || m.created_at > h); paintThread();
   if (MSGS.some(m => m.sender_id !== CUR && !m.read_at)) { await sb.rpc('mark_read', { _conv: c }); loadConvs(); }
 }
 function subscribeMessages(uid) {
@@ -192,38 +202,88 @@ function subscribeMessages(uid) {
     if (m.sender_id !== CUR) {
       if (here) sb.rpc('mark_read', { _conv: m.conversation_id }).then(loadConvs);
       else {
-        const c = CONVS.find(x => x.id === m.conversation_id), n = c ? c.other.name : 'a player';
+        const c = CONVS.find(x => x.id === m.conversation_id), s = c && c.members.find(p => p.id === m.sender_id);
+        const n = c ? (c.group ? `${s ? s.name : 'someone'} in ${c.other.name}` : c.other.name) : 'a player';
         toast('💬 New message from ' + n); addNotification(`New message from ${n}: "${m.message.slice(0, 60)}"`);
       }
     }
     loadConvs();
-  }).subscribe();
+  }).on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, ({ old: o }) => {
+    if (o && MSGS.some(x => x.id === o.id)) { MSGS = MSGS.filter(x => x.id !== o.id); MSGS.forEach(x => { if (x.reply_to === o.id) x.reply_to = 'gone'; }); if (REPLY && REPLY.id === o.id) REPLY = null; paintThread(); paintReply(); }
+    loadConvs();
+  }).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'conversation_members', filter: 'user_id=eq.' + uid }, () => loadConvs())
+    .subscribe();
 }
 async function sendMsg(e) {
   e.preventDefault();
   const inp = e.target.msg, t = inp.value.trim(); if (!t || !ACTIVE) return;
   inp.value = '';
-  const { data, error } = await sb.from('messages').insert({ conversation_id: ACTIVE, sender_id: CUR, message: t.slice(0, 2000) }).select().single();
+  const row = { conversation_id: ACTIVE, sender_id: CUR, message: t.slice(0, 2000) };
+  if (REPLY) row.reply_to = REPLY.id;
+  const { data, error } = await sb.from('messages').insert(row).select(MCOLS).single();
   if (error) { inp.value = t; return toast('Message not sent', 1); }
+  REPLY = null; paintReply();
   if (!MSGS.some(x => x.id === data.id)) { MSGS.push(data); paintThread(); }
   loadConvs();
 }
-const convList = () => CONVS.length ? CONVS.map(c => `<div class="ci ${c.id === ACTIVE ? 'on' : ''}" onclick="openConv('${c.id}')">${avatar(c.other)}<div class="t"><div><b>${isOn(c.other.id) ? '🟢 ' : ''}${esc(c.other.name)}</b></div><div class="mut">${c.last ? (c.last.sender_id === CUR ? 'You: ' : '') + esc(c.last.message) : 'No messages yet'}</div></div><div style="text-align:right"><div class="mut" style="font-size:12px">${c.last ? ago(c.last.created_at) : ''}</div>${c.unread ? `<em class="ub">${c.unread}</em>` : ''}</div></div>`).join('')
-  : `<div class="pad mut" style="text-align:center"><b style="display:block;color:var(--ink);margin-bottom:4px">No conversations yet</b>Open a player's profile and tap 💬 Chat.<div style="margin-top:12px"><button class="btn sm" onclick="go('players')">Find Players</button></div></div>`;
+const senderName = id => { if (id === CUR) return 'You'; const c = CONVS.find(x => x.id === ACTIVE); const p = c && c.members.find(x => x.id === id); return p ? p.name : 'Player'; };
+function pickMsg(id) { MSEL = MSEL === id ? null : id; paintThread(false); }
+function replyTo(id) { const m = MSGS.find(x => x.id === id); if (!m) return; REPLY = m; MSEL = null; paintThread(false); paintReply(); const i = $('.cin input'); if (i) i.focus(); }
+function cancelReply() { REPLY = null; paintReply(); }
+function paintReply() { const b = $('#rbar'); if (!b) return; b.innerHTML = REPLY ? `<div class="rq"><b>Replying to ${esc(senderName(REPLY.sender_id))}</b><span>${esc(REPLY.message.slice(0, 90))}</span></div><button type="button" class="btn sec sm" onclick="cancelReply()" aria-label="Cancel reply">✕</button>` : ''; b.hidden = !REPLY; }
+async function unsend(id) {
+  if (!confirm('Unsend this message for everyone?')) return;
+  const { error } = await sb.rpc('unsend_message', { _id: id });
+  if (error) return toast(error.message || 'Could not unsend', 1);
+  MSGS = MSGS.filter(x => x.id !== id); MSGS.forEach(x => { if (x.reply_to === id) x.reply_to = 'gone'; }); MSEL = null; paintThread(false); loadConvs();
+}
+function jumpTo(id) { const el = document.getElementById('m-' + id); if (!el) return toast('Original message is not loaded', 1); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1200); }
+async function deleteChat(id) {
+  if (!confirm('Delete this chat from your inbox? The other person will still have it.')) return;
+  const { error } = await sb.rpc('hide_conversation', { _c: id });
+  if (error) return toast('Could not delete chat', 1);
+  if (ACTIVE === id) ACTIVE = null; toast('Chat deleted'); await loadConvs(); render();
+}
+function newGroup() {
+  if (needLogin()) return;
+  const ps = PLAYERS.filter(p => p.id && p.id !== CUR);
+  openModal(`<h2 class="brand">Create Group</h2><form onsubmit="makeGroup(event)"><label>Group name</label><input name="gname" maxlength="60" required placeholder="e.g. Sunday Football">
+  <label>Members</label><div class="gpick">${ps.length ? ps.map(p => `<label class="gp"><input type="checkbox" name="gm" value="${p.id}">${avatar(p)}<span>${esc(p.name)}</span></label>`).join('') : '<p class="mut">No other registered players yet.</p>'}</div>
+  <div class="err" id="gerr"></div><div class="row" style="margin-top:16px"><button type="button" class="btn sec" onclick="closeModal()">Cancel</button><button class="btn full">Create Group</button></div></form>`);
+}
+async function makeGroup(e) {
+  e.preventDefault(); const f = e.target, name = f.gname.value.trim(), ids = [...f.querySelectorAll('input[name=gm]:checked')].map(x => x.value);
+  if (!name) return $('#gerr').textContent = 'Enter a group name';
+  if (!ids.length) return $('#gerr').textContent = 'Select at least one member';
+  const b = f.querySelector('button.full'); b.disabled = true;
+  const { data, error } = await sb.rpc('create_group', { _name: name, _members: ids });
+  if (error) { b.disabled = false; return $('#gerr').textContent = error.message; }
+  closeModal(); ACTIVE = data; MSGS = []; await loadConvs(); go('messages'); render(); loadThread();
+}
+const convList = () => `<div class="cl-top"><button class="btn sec sm" onclick="newGroup()">👥 Create Group</button></div>` + (CONVS.length ? CONVS.map(c => `<div class="ci ${c.id === ACTIVE ? 'on' : ''}" onclick="openConv('${c.id}')">${c.group ? '<div class="av gav">👥</div>' : avatar(c.other)}<div class="t"><div><b>${!c.group && isOn(c.other.id) ? '🟢 ' : ''}${esc(c.other.name)}</b></div><div class="mut">${c.last ? (c.last.sender_id === CUR ? 'You: ' : c.group ? esc(senderNameIn(c, c.last.sender_id)) + ': ' : '') + esc(c.last.message) : c.group ? 'Group created' : 'No messages yet'}</div></div><div style="text-align:right"><div class="mut" style="font-size:12px">${c.last ? ago(c.last.created_at) : ''}</div>${c.unread ? `<em class="ub">${c.unread}</em>` : ''}<button class="cdel" title="Delete chat" aria-label="Delete chat" onclick="event.stopPropagation();deleteChat('${c.id}')">🗑</button></div></div>`).join('')
+  : `<div class="pad mut" style="text-align:center"><b style="display:block;color:var(--ink);margin-bottom:4px">No conversations yet</b>Open a player's profile and tap 💬 Chat.<div style="margin-top:12px"><button class="btn sm" onclick="go('players')">Find Players</button></div></div>`);
+const senderNameIn = (c, id) => { const p = c.members.find(x => x.id === id); return p ? p.name.split(' ')[0] : 'Player'; };
 function threadHead() {
   const c = CONVS.find(x => x.id === ACTIVE); if (!c) return '';
+  if (c.group) return `<button class="btn sec sm cback" onclick="closeConv()">←</button><div class="av gav">👥</div><div style="min-width:0"><b>${esc(c.other.name)}</b><div class="mut" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">You, ${c.members.map(p => esc(p.name)).join(', ')}</div></div>`;
   return `<button class="btn sec sm cback" onclick="closeConv()">←</button>${avatar(c.other)}<div><b>${esc(c.other.name)}</b><div class="mut" style="font-size:13px">${statusTxt(c.other)}</div></div>`;
 }
-function paintThread() {
+function paintThread(scroll = true) {
   const box = $('#msgs'); if (!box) return;
-  box.innerHTML = MSGS.length ? MSGS.map(m => `<div class="bb ${m.sender_id === CUR ? 'me' : ''}">${esc(m.message)}<small>${tm(m.created_at)}${m.sender_id === CUR && m.read_at ? ' · Seen' : ''}</small></div>`).join('') : '<p class="mut" style="text-align:center;margin:auto">Say hi 👋</p>';
-  box.scrollTop = box.scrollHeight;
+  const c = CONVS.find(x => x.id === ACTIVE), grp = c && c.group;
+  box.innerHTML = MSGS.length ? MSGS.map(m => {
+    const me = m.sender_id === CUR, q = m.reply_to && (MSGS.find(x => x.id === m.reply_to));
+    const quote = m.reply_to ? (q ? `<button type="button" class="rq in" onclick="event.stopPropagation();jumpTo('${q.id}')"><b>${esc(senderName(q.sender_id))}</b><span>${esc(q.message.slice(0, 80))}</span></button>` : `<div class="rq in"><span>Original message unsent</span></div>`) : '';
+    const acts = MSEL === m.id ? `<div class="macts"><button type="button" onclick="event.stopPropagation();replyTo('${m.id}')">↩ Reply</button>${me ? `<button type="button" class="u" onclick="event.stopPropagation();unsend('${m.id}')">Unsend</button>` : ''}</div>` : '';
+    return `<div class="bb ${me ? 'me' : ''}" id="m-${m.id}" onclick="pickMsg('${m.id}')">${grp && !me ? `<em class="snd">${esc(senderName(m.sender_id))}</em>` : ''}${quote}${esc(m.message)}<small>${tm(m.created_at)}${me && m.read_at && !grp ? ' · Seen' : ''}</small>${acts}</div>`;
+  }).join('') : '<p class="mut" style="text-align:center;margin:auto">Say hi 👋</p>';
+  if (scroll) box.scrollTop = box.scrollHeight;
 }
 views.messages = () => {
   if (needLogin()) return '';
-  return `<div class="pg">${pageHead('Messages', 'Real 1-to-1 conversations with players.')}<div class="chat ${ACTIVE ? 'has' : ''}"><div class="clist" id="clist">${convList()}</div>
+  return `<div class="pg">${pageHead('Messages', 'Real conversations and group chats with players.')}<div class="chat ${ACTIVE ? 'has' : ''}"><div class="clist" id="clist">${convList()}</div>
   <div class="cthread">${ACTIVE ? `<div class="th" id="thead">${threadHead()}</div><div class="msgs" id="msgs"><p class="mut" style="margin:auto">Loading…</p></div>
-  <form class="cin" onsubmit="sendMsg(event)"><input name="msg" placeholder="Type a message..." autocomplete="off" maxlength="2000"><button class="btn">Send</button></form>`
+  <div class="rbar" id="rbar" hidden></div><form class="cin" onsubmit="sendMsg(event)"><input name="msg" placeholder="Type a message..." autocomplete="off" maxlength="2000"><button class="btn">Send</button></form>`
       : '<div style="margin:auto;text-align:center" class="mut pad"><div style="font-size:44px">💬</div>Select a conversation</div>'}</div></div></div>`;
 };
 
@@ -340,6 +400,6 @@ chrome = function () {
   if (me()) { const bell = $('#right .ib'); if (bell) bell.insertAdjacentHTML('beforebegin', `<button class="ib" onclick="go('messages')" aria-label="Messages">💬${UNREAD ? `<em>${UNREAD}</em>` : ''}</button>`); }
 };
 const _render2 = render;
-render = function () { _render2(); if (view() === 'messages' && ACTIVE) paintThread(); };
+render = function () { _render2(); if (view() === 'messages' && ACTIVE) { paintThread(); paintReply(); } };
 window.addEventListener('hashchange', () => { if (view() !== 'messages') ACTIVE = null; render(); });
 render();

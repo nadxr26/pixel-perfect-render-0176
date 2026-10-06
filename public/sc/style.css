@@ -133,3 +133,17 @@ main.wrap{min-height:calc(100vh - 68px)}
 @keyframes ai-pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.45)}100%{box-shadow:0 0 0 14px rgba(239,68,68,0)}}
 .aiw.listening .ai-orb,.aiw.thinking .ai-orb{animation-duration:1.6s;filter:saturate(1.4) brightness(1.08)}
 @media(prefers-reduced-motion:reduce){.ai-orb,.ai-think i{animation:none}}
+/* ===== CHAT: reply / unsend / groups ===== */
+.cl-top{padding:10px 12px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:flex-end}
+.gav{background:#ecfdf5;font-size:18px}
+.cdel{border:0;background:none;cursor:pointer;font-size:13px;opacity:.35;padding:2px 0 0;display:block;margin-left:auto}.ci:hover .cdel,.cdel:focus{opacity:.9}
+.bb{cursor:pointer;transition:box-shadow .3s}.bb.flash{box-shadow:0 0 0 3px rgba(16,185,129,.45)}
+.bb .snd{display:block;font-style:normal;font-size:12px;font-weight:700;color:var(--g);margin-bottom:2px}
+.rq{display:flex;flex-direction:column;gap:1px;border-left:3px solid var(--g2);background:#f0fdf4;border-radius:8px;padding:5px 9px;font-size:13px;text-align:left;min-width:0}
+.rq span{color:#4b5563;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rq b{color:#065f46;font-size:12px}
+.rq.in{margin:0 0 6px;border:0;border-left:3px solid var(--g2);font:inherit;font-size:13px;cursor:pointer;width:100%}
+.bb.me .rq.in{background:rgba(255,255,255,.18);border-left-color:#fff}.bb.me .rq.in b,.bb.me .rq.in span{color:#fff}
+.macts{display:flex;gap:6px;margin-top:6px}.macts button{border:1px solid var(--line);background:#fff;color:#065f46;border-radius:99px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}.macts button.u{color:#dc2626}
+.rbar{display:flex;gap:8px;align-items:center;padding:8px 12px 0}.rbar[hidden]{display:none}.rbar .rq{flex:1}
+.gpick{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:14px}
+.gp{display:flex!important;align-items:center;gap:10px;margin:0!important;padding:8px 12px;border-bottom:1px solid #f3f4f6;cursor:pointer;font-weight:600!important}.gp input{width:auto}

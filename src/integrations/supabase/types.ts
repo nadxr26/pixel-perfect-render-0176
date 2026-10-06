@@ -17,14 +17,17 @@ export type Database = {
       conversation_members: {
         Row: {
           conversation_id: string
+          hidden_at: string | null
           user_id: string
         }
         Insert: {
           conversation_id: string
+          hidden_at?: string | null
           user_id: string
         }
         Update: {
           conversation_id?: string
+          hidden_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -40,15 +43,24 @@ export type Database = {
       conversations: {
         Row: {
           created_at: string
+          created_by: string | null
           id: string
+          is_group: boolean
+          name: string | null
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           id?: string
+          is_group?: boolean
+          name?: string | null
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           id?: string
+          is_group?: boolean
+          name?: string | null
         }
         Relationships: []
       }
@@ -287,6 +299,7 @@ export type Database = {
           id: string
           message: string
           read_at: string | null
+          reply_to: string | null
           sender_id: string
         }
         Insert: {
@@ -295,6 +308,7 @@ export type Database = {
           id?: string
           message: string
           read_at?: string | null
+          reply_to?: string | null
           sender_id: string
         }
         Update: {
@@ -303,6 +317,7 @@ export type Database = {
           id?: string
           message?: string
           read_at?: string | null
+          reply_to?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -311,6 +326,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]
@@ -425,7 +447,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_group: {
+        Args: { _members: string[]; _name: string }
+        Returns: string
+      }
       get_or_create_dm: { Args: { _other: string }; Returns: string }
+      hide_conversation: { Args: { _c: string }; Returns: undefined }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
       join_match: { Args: { _m: string; _spots?: number }; Returns: undefined }
       join_waitlist: { Args: { _m: string }; Returns: undefined }
@@ -449,6 +476,7 @@ export type Database = {
       pay_demo: { Args: { _m: string }; Returns: undefined }
       remove_player: { Args: { _m: string; _u: string }; Returns: undefined }
       sync_payments: { Args: { _m: string }; Returns: undefined }
+      unsend_message: { Args: { _id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
