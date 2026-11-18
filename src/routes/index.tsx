@@ -39,6 +39,7 @@ const SCRIPTS = [
   "/sc/matches.js",
   "/sc/follow.js",
   "/sc/grounds.js",
+  "/sc/community.js",
   "/sc/background.js",
   "/sc/assistant.js",
 ];

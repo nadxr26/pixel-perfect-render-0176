@@ -337,6 +337,47 @@ export type Database = {
           },
         ]
       }
+      player_ratings: {
+        Row: {
+          created_at: string
+          match_id: string
+          mvp: boolean
+          punctuality: number
+          rated_id: string
+          rater_id: string
+          skill: number
+          sportsmanship: number
+        }
+        Insert: {
+          created_at?: string
+          match_id: string
+          mvp?: boolean
+          punctuality: number
+          rated_id: string
+          rater_id?: string
+          skill: number
+          sportsmanship: number
+        }
+        Update: {
+          created_at?: string
+          match_id?: string
+          mvp?: boolean
+          punctuality?: number
+          rated_id?: string
+          rater_id?: string
+          skill?: number
+          sportsmanship?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_ratings_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           city: string | null
@@ -372,6 +413,228 @@ export type Database = {
           sports?: string[]
         }
         Relationships: []
+      }
+      team_members: {
+        Row: {
+          joined_at: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          captain_id: string
+          city: string
+          created_at: string
+          id: string
+          name: string
+          sport: string
+        }
+        Insert: {
+          captain_id?: string
+          city?: string
+          created_at?: string
+          id?: string
+          name: string
+          sport: string
+        }
+        Update: {
+          captain_id?: string
+          city?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sport?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_captain_id_fkey"
+            columns: ["captain_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_fixtures: {
+        Row: {
+          created_at: string
+          id: string
+          round: number
+          score_a: number | null
+          score_b: number | null
+          status: string
+          team_a: string
+          team_b: string
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          round: number
+          score_a?: number | null
+          score_b?: number | null
+          status?: string
+          team_a: string
+          team_b: string
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          round?: number
+          score_a?: number | null
+          score_b?: number | null
+          status?: string
+          team_a?: string
+          team_b?: string
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_fixtures_team_a_fkey"
+            columns: ["team_a"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_fixtures_team_b_fkey"
+            columns: ["team_b"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_fixtures_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_teams: {
+        Row: {
+          registered_at: string
+          team_id: string
+          tournament_id: string
+        }
+        Insert: {
+          registered_at?: string
+          team_id: string
+          tournament_id: string
+        }
+        Update: {
+          registered_at?: string
+          team_id?: string
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_teams_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_teams_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          created_at: string
+          description: string
+          entry_fee: number
+          format: string
+          ground_id: string | null
+          id: string
+          max_teams: number
+          organizer_id: string
+          prize: string
+          sport: string
+          start_date: string
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          entry_fee?: number
+          format?: string
+          ground_id?: string | null
+          id?: string
+          max_teams?: number
+          organizer_id?: string
+          prize?: string
+          sport: string
+          start_date: string
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          entry_fee?: number
+          format?: string
+          ground_id?: string | null
+          id?: string
+          max_teams?: number
+          organizer_id?: string
+          prize?: string
+          sport?: string
+          start_date?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournaments_ground_id_fkey"
+            columns: ["ground_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournaments_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_locations: {
         Row: {
@@ -473,6 +736,17 @@ export type Database = {
         }[]
       }
       get_or_create_dm: { Args: { _other: string }; Returns: string }
+      get_player_stats: {
+        Args: { _u: string }
+        Returns: {
+          avg_punctuality: number
+          avg_skill: number
+          avg_sportsmanship: number
+          matches_played: number
+          mvp_count: number
+          ratings_count: number
+        }[]
+      }
       get_waitlist_counts: {
         Args: { _match_ids: string[] }
         Returns: {
@@ -484,8 +758,10 @@ export type Database = {
       hide_conversation: { Args: { _c: string }; Returns: undefined }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
       join_match: { Args: { _m: string; _spots?: number }; Returns: undefined }
+      join_team: { Args: { _t: string }; Returns: undefined }
       join_waitlist: { Args: { _m: string }; Returns: undefined }
       leave_match: { Args: { _m: string }; Returns: undefined }
+      leave_team: { Args: { _t: string }; Returns: undefined }
       leave_waitlist: { Args: { _m: string }; Returns: undefined }
       list_players: {
         Args: never
@@ -501,11 +777,77 @@ export type Database = {
           sports: string[]
         }[]
       }
+      list_teams: {
+        Args: never
+        Returns: {
+          captain_id: string
+          captain_name: string
+          city: string
+          created_at: string
+          id: string
+          is_member: boolean
+          member_count: number
+          name: string
+          sport: string
+        }[]
+      }
       mark_read: { Args: { _conv: string }; Returns: undefined }
+      my_match_history: {
+        Args: never
+        Returns: {
+          ground_id: string
+          is_host: boolean
+          match_date: string
+          match_id: string
+          sport: string
+          start_hour: number
+          status: string
+          title: string
+        }[]
+      }
       pay_demo: { Args: { _m: string }; Returns: undefined }
+      rate_player: {
+        Args: {
+          _m: string
+          _mvp: boolean
+          _punct: number
+          _skill: number
+          _sport: number
+          _u: string
+        }
+        Returns: undefined
+      }
+      rateable_players: {
+        Args: { _m: string }
+        Returns: {
+          my_mvp: boolean
+          my_punctuality: number
+          my_skill: number
+          my_sportsmanship: number
+          name: string
+          photo: string
+          user_id: string
+        }[]
+      }
+      register_team: { Args: { _t: string; _team: string }; Returns: undefined }
       remove_player: { Args: { _m: string; _u: string }; Returns: undefined }
+      set_fixture_result: {
+        Args: { _a: number; _b: number; _f: string }
+        Returns: undefined
+      }
+      start_tournament: { Args: { _t: string }; Returns: undefined }
       sync_payments: { Args: { _m: string }; Returns: undefined }
+      team_roster: {
+        Args: { _t: string }
+        Returns: {
+          name: string
+          photo: string
+          skill_level: string
+          user_id: string
+        }[]
+      }
       unsend_message: { Args: { _id: string }; Returns: undefined }
+      withdraw_team: { Args: { _t: string; _team: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
