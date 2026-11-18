@@ -447,11 +447,40 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_match_participant_list: {
+        Args: { _match_id: string }
+        Returns: boolean
+      }
       create_group: {
         Args: { _members: string[]; _name: string }
         Returns: string
       }
+      get_follow_counts: {
+        Args: { _profile_id: string }
+        Returns: {
+          followers: number
+          following: number
+        }[]
+      }
+      get_match_payment_details: {
+        Args: { _match_ids: string[] }
+        Returns: {
+          amount: number
+          match_id: string
+          paid_at: string
+          payment_status: string
+          user_id: string
+        }[]
+      }
       get_or_create_dm: { Args: { _other: string }; Returns: string }
+      get_waitlist_counts: {
+        Args: { _match_ids: string[] }
+        Returns: {
+          match_id: string
+          my_position: number
+          waitlist_count: number
+        }[]
+      }
       hide_conversation: { Args: { _c: string }; Returns: undefined }
       is_member: { Args: { _conv: string; _user: string }; Returns: boolean }
       join_match: { Args: { _m: string; _spots?: number }; Returns: undefined }

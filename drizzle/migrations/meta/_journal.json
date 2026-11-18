@@ -1,0 +1,104 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1795023262997,
+      "tag": "0000_restrict_profile_follow_participant_reads",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795023319315,
+      "tag": "0001_limit_waitlist_visibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795023357909,
+      "tag": "0002_scope_shared_match_visibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795023413144,
+      "tag": "0003_hide_other_waitlist_identities",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795023441949,
+      "tag": "0004_secure_waitlist_summary",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795023468899,
+      "tag": "0005_remove_waitlist_identity_read",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795023510656,
+      "tag": "0006_restore_existing_waitlist_visibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795023541199,
+      "tag": "0007_restrict_waitlist_rows",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795023610365,
+      "tag": "0008_preserve_unselected_match_visibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795023676691,
+      "tag": "0009_restore_unselected_waitlist_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795023727242,
+      "tag": "0010_remove_public_profile_visibility_helper",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795023799261,
+      "tag": "0011_finalize_selected_read_scopes",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795023919639,
+      "tag": "0012_bind_participant_policy_to_caller",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795024031886,
+      "tag": "0013_restrict_selected_waitlist_visibility",
+      "breakpoints": true
+    }
+  ]
+}

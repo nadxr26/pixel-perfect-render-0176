@@ -16,3 +16,4 @@
 - Sport wallpaper switching is presentation-only in public/sc/background.js and must not own product state; why: cinematic backgrounds remain isolated from auth, match, venue and chat behavior.
 - AI assistant: public/sc/assistant.js UI + src/routes/api/assistant.ts streams from the AI gateway; why: keeps the key server-side and the vanilla app untouched.
 - Chat: groups/delete-for-me/unsend/reply live in real.js via conversations.is_group, conversation_members.hidden_at, messages.reply_to and RPCs create_group/hide_conversation/unsend_message; why: membership-scoped RLS stays the single access gate.
+- Profile, follow, and match participant reads are restricted by connection and match context, with private payment fields served only through authenticated, owner-scoped functions; why: protect user and payment details without exposing them through broad table reads.

@@ -1,0 +1,1 @@
+REVOKE SELECT (user_id) ON TABLE public.match_waitlist FROM authenticated;

@@ -85,10 +85,10 @@
   };
   window.followCounts = async function (id) {              // counts for another player's profile modal
     const el = document.getElementById('pf-counts'); if (!el || el.dataset.pid !== id) return;
-    const q = c => sb.from('follows').select('*', { count: 'exact', head: true }).eq(c, id);
-    const [a, b] = await Promise.all([q('following_id'), q('follower_id')]);
+    const { data, error } = await sb.rpc('get_follow_counts', { _profile_id: id });
     const e2 = document.getElementById('pf-counts'); if (!e2 || e2.dataset.pid !== id) return;
-    e2.innerHTML = a.error || b.error ? '👥 –' : `👥 <b>${a.count}</b> followers · <b>${b.count}</b> following`;
+    const counts = data && data[0];
+    e2.innerHTML = error || !counts ? '👥 –' : `👥 <b>${counts.followers}</b> followers · <b>${counts.following}</b> following`;
   };
   const row = id => {
     const p = prof(id);

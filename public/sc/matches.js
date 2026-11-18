@@ -9,13 +9,19 @@
     if (!MUID) { S.matches.length = 0; return; }
     const seq = ++SEQ;
     const { data: rows, error } = await sb.from('matches')
-      .select('*, match_participants(user_id,spots,joined_at,payment_status,amount,paid_at), match_waitlist(user_id,created_at)')
+      .select('*, match_participants(user_id,spots,joined_at), match_waitlist(user_id,created_at)')
       .in('status', ['open', 'cancelled']).gte('match_date', day(0)).order('match_date').order('start_hour').limit(300)
       .order('joined_at', { referencedTable: 'match_participants' }).order('created_at', { referencedTable: 'match_waitlist' });
     if (seq !== SEQ) return; // a newer load already started; ignore this stale response
     if (error) { console.error('[matches] load failed', error); return; }
     const ms = (rows || []).filter(m => m.status === 'open' || m.host_id === MUID || (m.match_participants || []).some(p => p.user_id === MUID)), ps = [], ws = [];
     ms.forEach(m => { (m.match_participants || []).forEach(p => ps.push({ ...p, match_id: m.id })); (m.match_waitlist || []).forEach(w => ws.push({ ...w, match_id: m.id })); });
+    const { data: payRows, error: payError } = await sb.rpc('get_match_payment_details', { _match_ids: ms.map(m => m.id) });
+    if (payError) console.warn('[matches] payment details unavailable', payError);
+    const payByKey = new Map((payRows || []).map(p => [`${p.match_id}:${p.user_id}`, p]));
+    ps.forEach(p => Object.assign(p, payByKey.get(`${p.match_id}:${p.user_id}`) || {}));
+    const { data: waitCounts, error: waitError } = await sb.rpc('get_waitlist_counts', { _match_ids: ms.map(m => m.id) });
+    if (waitError) console.warn('[matches] waitlist summary unavailable', waitError);
     const ids = new Set();
     (ms || []).forEach(m => ids.add(m.host_id)); (ps || []).forEach(p => ids.add(p.user_id)); (ws || []).forEach(w => ids.add(w.user_id));
     const need = [...ids].filter(i => !NAMES[i]);
@@ -32,7 +38,15 @@
         players: part.map(p => ({ id: p.user_id, name: nm(p.user_id), pay: p.payment_status, amount: p.amount ?? m.amount_per_player })) };
     });
     S.matches.splice(0, S.matches.length, ...list);
-    S.waitlists = {}; (ws || []).forEach(w => (S.waitlists[w.match_id] = S.waitlists[w.match_id] || []).push(w.user_id));
+    S.waitlists = {};
+    (waitCounts || []).forEach(w => {
+      const count = Number(w.waitlist_count || 0), position = Number(w.my_position || 0);
+      if (count > 0) {
+        const list = Array(count).fill(null);
+        if (position > 0 && position <= count) list[position - 1] = MUID;
+        S.waitlists[w.match_id] = list;
+      }
+    });
     paint();
   }
   function paint() {
