@@ -116,7 +116,7 @@ window.commSaveRate=async(e,m)=>{e.preventDefault();const f=Object.fromEntries(n
 
 views.community=function(){if(needLogin())return '';
   const body=C.tab==='teams'?teamsView():C.tab==='tours'?toursView():historyView();
-  return `<div class="pg">${pageHead('Community','Teams, tournaments, ratings and your match history.')}<div class="row wp" style="gap:8px;margin-top:10px">${tabBtn('teams','🛡️ Teams')}${tabBtn('tours','🏆 Tournaments')}${tabBtn('history','⭐ History & Ratings')}</div>${body}</div>`};
+  return `<div class="pg community-page">${pageHead('Community','Teams, tournaments, ratings and your match history.')}<div class="row wp" style="gap:8px;margin-top:10px">${tabBtn('teams','🛡️ Teams')}${tabBtn('tours','🏆 Tournaments')}${tabBtn('history','⭐ History & Ratings')}</div>${body}</div>`};
 
 const _chrome=window.chrome_orig||chrome;
 window.chrome=chrome=function(){_chrome();const v=location.hash.slice(1),l=$('#links');if(l&&!l.querySelector('[data-comm]'))l.insertAdjacentHTML('beforeend',`<a data-comm class="${v==='community'?'on':''}" onclick="go('community')">Community</a>`)};

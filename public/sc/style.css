@@ -94,6 +94,7 @@ nav.top{background:rgba(253,251,247,.91);box-shadow:0 8px 30px rgba(0,0,0,.12)}
 main.wrap{min-height:calc(100vh - 68px)}
 .hero h1,.pg>.row:first-child h2,.pg>h2{color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.42)}
 .hero .mut,.pg>.row:first-child .mut{color:rgba(255,255,255,.8);text-shadow:0 1px 8px rgba(0,0,0,.55)}
+.community-page>.row.wp+.row h3,.community-page>.row.wp+h3{color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.72)}
 .card,.filters,.clist,.cthread,.mapbox{background:rgba(255,255,255,.94);box-shadow:0 10px 36px rgba(0,0,0,.16);backdrop-filter:blur(14px) saturate(.94)}
 .bot{background:rgba(255,255,255,.94)}
 @media(max-width:640px){.sc-wallpaper-layer{inset:-5%;background-position:center center}.sc-wallpaper::after{background:linear-gradient(180deg,rgba(5,14,12,.62),rgba(5,14,12,.72) 55%,rgba(5,14,12,.8))}}
