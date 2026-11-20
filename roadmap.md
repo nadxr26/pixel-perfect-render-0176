@@ -1,2 +1,1 @@
 - [x] AI assistant (Coach): floating chat, voice in, read-aloud
-- [ ] Add verified venue photo galleries and an unavailable-photo placeholder without changing booking behavior
