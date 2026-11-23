@@ -46,7 +46,7 @@
     const f = document.getElementById('bkf'); if (!f) return;
     const t = +f.price.value, n = +f.players.value, { share, pay } = split(t, n);
     document.getElementById('bkc').innerHTML = `<div class="fee"><div><span>Ground Cost</span><b>₹${t || 0}</b></div><div><span>Players Required</span><b>${n || 0}</b></div>
-      <div><span>Ground Cost Per Player</span><b>₹${share}</b></div><div><span>Khel Sathi Fee</span><b>₹${FEE}</b></div>
+      <div><span>Ground Cost Per Player</span><b>₹${share}</b></div><div><span>Sports Connect Fee</span><b>₹${FEE}</b></div>
       <div class="t"><span>Final Amount Per Player</span><span>₹${pay}</span></div></div>`;
   };
   window.openBooking = id => {
@@ -129,7 +129,7 @@
       const g = gr(bk.ground_id), share = bk.amount_per_player - FEE;
       h = h.replace(/<select name="gid">[\s\S]*?<\/select>/, `<input type="hidden" name="gid" value="${bk.ground_id}"><input type="hidden" name="booking_id" value="${bk.id}">
         <div class="fee"><div><span>Ground</span><b>${esc(g.name || 'Booked ground')}</b></div><div><span>Ground Booking</span><b>₹${+bk.total_price}</b></div>
-        <div><span>Ground Share</span><b>₹${share}/player</b></div><div><span>Khel Sathi Fee</span><b>₹${FEE}/player</b></div><div class="t"><span>Each player pays</span><span>₹${bk.amount_per_player}</span></div></div>`)
+        <div><span>Ground Share</span><b>₹${share}/player</b></div><div><span>Sports Connect Fee</span><b>₹${FEE}/player</b></div><div class="t"><span>Each player pays</span><span>₹${bk.amount_per_player}</span></div></div>`)
         .replace(/name="date" type="date" min="([^"]+)" value="[^"]+"/, `name="date" type="date" min="$1" value="${bk.booking_date}"`)
         .replace(/(<select name="start">[\s\S]*?<\/select>)/, m => m.replace(/ selected/g, '').replace(`value="${bk.start_hour}"`, `value="${bk.start_hour}" selected`))
         .replace(/(<select name="end">[\s\S]*?<\/select>)/, m => m.replace(/ selected/g, '').replace(`value="${bk.end_hour}"`, `value="${bk.end_hour}" selected`))

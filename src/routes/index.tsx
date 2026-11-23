@@ -5,9 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Khel Sathi | Find Players. Book Grounds. Play Together." },
+      { title: "Sports Connect | Find Players. Book Grounds. Play Together." },
       { name: "description", content: "Find real players near you, chat live, book grounds and play together in Jaipur." },
-      { property: "og:title", content: "Khel Sathi | Find Players. Book Grounds. Play Together." },
+      { property: "og:title", content: "Sports Connect | Find Players. Book Grounds. Play Together." },
       { property: "og:description", content: "Find real players near you, chat live, book grounds and play together." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/")({
 });
 
 const SHELL = `<div class="sc-wallpaper" aria-hidden="true"><div class="sc-wallpaper-layer is-active"></div><div class="sc-wallpaper-layer"></div></div><nav class="top"><div class="wrap bar">
- <div class="logo brand" onclick="go('home')"><i>⚽</i><span>KHEL <b>SATHI</b></span></div>
+ <div class="logo brand" onclick="go('home')"><i>⚽</i><span>SPORTS<b>CONNECT</b></span></div>
  <div class="links" id="links"></div>
  <div class="right" id="right"></div>
 </div></nav>

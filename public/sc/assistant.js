@@ -1,4 +1,4 @@
-/* Khel Sathi AI assistant ("Coach"). Self-contained UI; reads app state only to give real context. */
+/* Sports Connect AI assistant ("Coach"). Self-contained UI; reads app state only to give real context. */
 (function () {
   const KEY = 'sc_assistant_v1';
   let msgs = [];
@@ -11,11 +11,11 @@
   const root = document.createElement('div');
   root.className = 'aiw';
   root.innerHTML = `
-  <button class="ai-fab" aria-label="Open Khel Sathi assistant"><span class="ai-orb"></span></button>
-  <section class="ai-panel" role="dialog" aria-label="Khel Sathi assistant" hidden>
+  <button class="ai-fab" aria-label="Open Sports Connect assistant"><span class="ai-orb"></span></button>
+  <section class="ai-panel" role="dialog" aria-label="Sports Connect assistant" hidden>
     <header class="ai-hd">
       <span class="ai-orb sm"></span>
-      <div><b>Coach</b><small>Your Khel Sathi assistant</small></div>
+      <div><b>Coach</b><small>Your Sports Connect assistant</small></div>
       <button class="ai-ic ai-spk" aria-label="Read answers aloud" title="Read answers aloud">🔈</button>
       <button class="ai-ic ai-new" aria-label="New chat" title="New chat">↺</button>
       <button class="ai-ic ai-x" aria-label="Close">✕</button>
@@ -24,7 +24,7 @@
     <div class="ai-sug"></div>
     <form class="ai-in">
       <button type="button" class="ai-mic" aria-label="Speak your question">🎙</button>
-      <textarea rows="1" placeholder="Ask anything about Khel Sathi…" maxlength="1000"></textarea>
+      <textarea rows="1" placeholder="Ask anything about Sports Connect…" maxlength="1000"></textarea>
       <button class="ai-send" aria-label="Send">↑</button>
     </form>
   </section>`;

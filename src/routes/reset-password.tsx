@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
-    meta: [{ title: "Reset password | Khel Sathi" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Reset password | Sports Connect" }, { name: "robots", content: "noindex" }],
     links: [
       {
         rel: "stylesheet",
@@ -138,7 +138,7 @@ function ResetPassword() {
           <a href="/" className="logo brand" style={{ textDecoration: "none", color: "inherit" }}>
             <i>⚽</i>
             <span>
-              KHEL <b>SATHI</b>
+              SPORTS<b>CONNECT</b>
             </span>
           </a>
         </div>

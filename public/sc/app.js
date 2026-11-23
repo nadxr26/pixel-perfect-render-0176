@@ -24,7 +24,7 @@ const GROUNDS=[ /* price, rating and distance are SAMPLE values */
  {id:'g8',name:'PlayAll Sports Arena',loc:'Mansarovar',sport:'Football',sports:['Football','Cricket','Basketball'],price:1100,rating:4.5,km:6.0,am:['Well-maintained turf','Floodlights','Locker rooms']},
  {id:'g9',name:'Sportify Arena',loc:'Tonk Road',sport:'Football',sports:['Football','Cricket','Volleyball'],price:1300,rating:4.7,km:2.4,am:['Premium turf','Professional setup','Cafe & relaxation area']},
  {id:'g10',name:'Local Box Turfs',loc:'Vaishali Nagar',sport:'Cricket',sports:['Football','Cricket'],price:600,rating:4.2,km:5.4,am:['Affordable rates','Flexible timings','Easy booking']}];
-const SEED={users:[],user:null,invites:{},notifs:[{id:1,t:'Welcome to Khel Sathi! Find players, book a ground or host a match.',r:0}],
+const SEED={users:[],user:null,invites:{},notifs:[{id:1,t:'Welcome to Sports Connect! Find players, book a ground or host a match.',r:0}],
  slots:[],bookings:[],
  waitlists:{},matches:[]};
 /* localStorage persistence (single key) */
@@ -54,7 +54,7 @@ function signup(e){e.preventDefault();const f=Object.fromEntries(new FormData(e.
  if(er.length){$('#aerr').innerHTML=er.map(x=>`<div class="err">• ${x}</div>`).join('');return}
  const file=e.target.photo.files[0];
  const finish=photo=>{const u={id:'u'+Date.now(),name:f.name.trim(),mobile:f.mobile,email:f.email.toLowerCase(),password:f.password,loc:f.loc,sport:f.sport,skill:f.skill,photo,rating:0,rn:0};
-  S.users.push(u);S.user=u.id;save();toast('Welcome to Khel Sathi, '+u.name.split(' ')[0]+'!');go('home')};
+  S.users.push(u);S.user=u.id;save();toast('Welcome to Sports Connect, '+u.name.split(' ')[0]+'!');go('home')};
  if(file){if(file.size>150000){$('#aerr').innerHTML='<div class="err">• Photo must be under 150 KB</div>';return}const r=new FileReader();r.onload=()=>finish(r.result);r.readAsDataURL(file)}else finish('')}
 function login(e){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const id=f.id.trim().toLowerCase();
  const u=S.users.find(u=>(u.email===id||u.mobile===id)&&u.password===f.password);
@@ -167,7 +167,7 @@ const views={
  <div class="card act" onclick="go('matches')"><div class="e">⚽</div><h3>Play Together</h3><p class="mut">Create or join matches, use waitlists.</p></div></div>
  ${u?`<h2>Welcome, ${esc(u.name.split(' ')[0])}</h2><div class="grid" style="margin:14px 0 30px"><div class="card pad"><b>Upcoming booking</b><p class="mut" style="margin:6px 0">${up?`${esc(up.title)} · ${fmtD(up.date)} · ${up.time}`:'No upcoming bookings'}</p><button class="btn sec sm" onclick="go('bookings')">My Bookings</button></div>
  <div class="card pad"><b>Notifications</b><p class="mut" style="margin:6px 0">${S.notifs.filter(n=>!n.r).length} unread</p><button class="btn sec sm" onclick="toggleNotifs()">Open</button></div>
- <div class="card pad"><b>Host a match</b><p class="mut" style="margin:6px 0">Need players? Create a game and invite.</p><button class="btn sm" onclick="go('host')">Host Match</button></div></div>`:`<div class="card pad" style="text-align:center;margin-bottom:30px"><b>Join Khel Sathi</b><p class="mut" style="margin:6px 0 12px">Create a free account to invite players, join matches and book grounds.</p><button class="btn" onclick="go('auth')">Sign up / Log in</button></div>`}`},
+ <div class="card pad"><b>Host a match</b><p class="mut" style="margin:6px 0">Need players? Create a game and invite.</p><button class="btn sm" onclick="go('host')">Host Match</button></div></div>`:`<div class="card pad" style="text-align:center;margin-bottom:30px"><b>Join Sports Connect</b><p class="mut" style="margin:6px 0 12px">Create a free account to invite players, join matches and book grounds.</p><button class="btn" onclick="go('auth')">Sign up / Log in</button></div>`}`},
  auth(){const o=(a,v)=>a.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('');return `<div class="pg"><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
  <form class="card pad" onsubmit="signup(event)"><h2 class="brand">Create account</h2><p class="mut">Demo account saved only in this browser (localStorage). No OTP is sent.</p>
  <label>Full name</label><input name="name" required><label>Mobile number</label><input name="mobile" inputmode="numeric" maxlength="10" required><label>Email</label><input name="email" type="email" required>
