@@ -330,7 +330,7 @@ async function signup(e) {
   if (error) { $('#aerr').innerHTML = `<div class="err">• ${esc(error.message)}</div>`; return; }
   if (data.user && data.user.identities && !data.user.identities.length) { $('#aerr').innerHTML = '<div class="err">• This email is already registered — please log in.</div>'; return; }
   if (!data.session) openModal(`<div style="text-align:center"><div style="font-size:54px">📧</div><h2 class="brand">Check your email</h2><p class="mut" style="margin:8px 0 16px">We sent a confirmation link to <b>${esc(f.email)}</b>. Click it to activate your account, then log in.</p><button class="btn full" onclick="closeModal()">OK</button></div>`);
-  else toast('Welcome to Sports Connect, ' + f.name.trim().split(' ')[0] + '!');
+  else toast('Welcome to Khel Sathi, ' + f.name.trim().split(' ')[0] + '!');
 }
 async function login(e) {
   e.preventDefault();

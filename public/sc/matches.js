@@ -158,7 +158,7 @@
     toast('Player removed'); await loadMatches(); if (document.getElementById('mgr')) manageMatch(id);
   };
   const PB = { paid: '<span class="badge g">✓ Paid</span>', payment_required: '<span class="badge a">⏳ Payment Required</span>', pending: '<span class="badge">Waiting for players</span>' };
-  const demoNote = '<div class="fee" style="margin-top:8px"><b>Demo Payment</b><div class="mut">No real money will be charged. This is only for testing Sports Connect.</div></div>';
+  const demoNote = '<div class="fee" style="margin-top:8px"><b>Demo Payment</b><div class="mut">No real money will be charged. This is only for testing Khel Sathi.</div></div>';
   window.manageMatch = function (id) {
     const m = mById(id); if (!m) return;
     const paid = m.players.filter(p => p.pay === 'paid').length, exp = m.max * m.app, got = paid * m.app;
@@ -182,7 +182,7 @@
  <div class="mut">Hosted by ${esc(m.host)}<br>📍 ${esc(g.name)}${g.loc ? ', ' + esc(g.loc) : ''}<br>📅 ${fmtD(m.date)} · ⏰ ${hr(m.start)} – ${hr(m.end)}</div>
  <div class="dots">${[...Array(Math.min(m.max, 30))].map((_, i) => `<i class="${i < m.cur ? 'f' : ''}"></i>`).join('')}</div><b>👥 ${m.cur} / ${m.max} Players Joined</b>
  ${m.players.length ? `<div class="mut" style="margin-top:4px;font-size:13px">Players: ${m.players.map(p => esc(p.name)).join(', ')}</div>` : ''}
- <div class="fee" style="margin-top:10px"><div><span>Ground Booking</span><b>₹${m.groundPrice}</b></div><div><span>Players</span><b>${m.max}</b></div><div><span>Ground Share</span><b>₹${m.app - FEE}/player</b></div><div><span>Sports Connect Fee</span><b>₹${FEE}/player</b></div><div class="t"><span>You Pay</span><span>₹${m.app}</span></div></div>
+ <div class="fee" style="margin-top:10px"><div><span>Ground Booking</span><b>₹${m.groundPrice}</b></div><div><span>Players</span><b>${m.max}</b></div><div><span>Ground Share</span><b>₹${m.app - FEE}/player</b></div><div><span>Khel Sathi Fee</span><b>₹${FEE}/player</b></div><div class="t"><span>You Pay</span><span>₹${m.app}</span></div></div>
  <div style="margin-top:12px">${act}</div></div>`;
   }
   window.matchCard = function (m) {
