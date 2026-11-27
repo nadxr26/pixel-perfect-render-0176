@@ -1,1 +1,3 @@
 - [x] AI assistant (Coach): floating chat, voice in, read-aloud
+- [ ] Remove the ₹10 platform fee from new booking and match payment totals without changing saved records
+- [ ] Add verified real checkout after recipient and payment-provider setup are confirmed
